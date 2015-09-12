@@ -75,3 +75,32 @@ void RBT_right_rotate(RBT_TREE *tree, RBT_NODE *node) {
 		node->parent = left_node;
 	}
 }
+
+RBT_NODE *RBT_insert(RBT_TREE *tree, RBT_NODE *node) {
+	RBT_NODE *parent = NULL;
+	RBT_NODE *iterator = tree->root;
+	
+	while ( iterator != NULL ) { // traversal of the tree finding parent of node
+		parent = iterator;
+		if ( node->key < iterator->key ) {
+			iterator = iterator->left;
+		} else {
+			iterator = iterator->right;
+		}
+	}
+
+	node->parent = parent; // setting parent node and fixing forward pointers
+	if ( iterator == NULL ) {
+		tree->root = node;
+	} else if ( node->key < iterator->key  ) {
+		iterator->left = node;
+	} else {
+		iterator->right = node;
+	}
+	
+	node->left = NULL;
+	node->right = NULL;
+	node->color = RED;
+	RBT_insert_fixup(tree, node);
+}
+

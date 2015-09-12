@@ -1,11 +1,10 @@
 #ifndef RB_TREE_
 #define RB_TREE_
 
-#define BLACK 0
-#define RED 1
+typedef enum { BLACK = 0, RED = 1 } RBT_COLORING;
 
 typedef struct RBT_NODE {
-	unsigned char color;
+	RBT_COLORING color;
 	int key;
 	struct RBT_NODE *left;
 	struct RBT_NODE *right;
@@ -21,5 +20,7 @@ void RBT_right_rotate(RBT_TREE *,RBT_NODE *);
 
 RBT_TREE *RBT_init_tree();
 void RBT_destroy_tree(RBT_TREE *);
+
+RBT_NODE *RBT_insert(RBT_TREE *, RBT_NODE *);
 
 #endif
