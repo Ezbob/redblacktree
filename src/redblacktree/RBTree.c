@@ -1,9 +1,27 @@
 #include "RBTree.h"
 #include <stdlib.h>
+#include <stdio.h>
+
+#define ERROR(message) fprintf(stderr, "Error: %s\n", message)
+#define ERROR_STOP(code, message) fprintf(stderr, "Error: %s\n", message); exit(code)
+
+RBT_NODE *RBT_new_node(int key);
+RBT_TREE *RBT_init_tree(void);
+void RBT_destroy_node(RBT_NODE **node);
+void RBT_left_rotate(RBT_TREE *tree, RBT_NODE *node);
+void RBT_right_rotate(RBT_TREE *tree, RBT_NODE *node);
+void RBT_insert_fixup(RBT_TREE *tree, RBT_NODE *node);
+RBT_NODE *RBT_insert(RBT_TREE *tree, RBT_NODE *node);
+static void RBT_recursive_destroy(RBT_NODE **node);
+
 
 RBT_NODE *RBT_new_node(int key) {
 	RBT_NODE *new_node;
 	new_node = malloc( sizeof(RBT_NODE) );
+	if ( new_node == NULL ) {
+		ERROR_STOP(EXIT_FAILURE, "Cannot allocate more memory.");
+		return NULL;
+	}
 	new_node->left = NULL;
 	new_node->right = NULL;
 	new_node->parent = NULL;
@@ -13,23 +31,28 @@ RBT_NODE *RBT_new_node(int key) {
 }
 
 void RBT_destroy_node(RBT_NODE **node) {
-	RBT_NODE *unpacked = *node;
-	unpacked->left = NULL;
-	unpacked->right = NULL;
-	unpacked->parent = NULL;
-	free(unpacked);
+	if ( node != NULL && node != NULL ) {
+		RBT_NODE *unpacked = *node;
+		unpacked->left = NULL;
+		unpacked->right = NULL;
+		unpacked->parent = NULL;
+		free(unpacked);	
+	}
 }
 
 RBT_TREE *RBT_init_tree() {
 	RBT_TREE *new_tree;
 	new_tree = malloc( sizeof(RBT_TREE) );
+	if ( new_tree == NULL ) {
+		ERROR_STOP(EXIT_FAILURE, "Cannot allocate more memory.");
+	}
 	new_tree->root = NULL;
 	new_tree->node_count = 0;
 	return new_tree;
 }
 
-void RBT_recursive_destroy(RBT_NODE **node) {
-	if ( *node != NULL ) {
+static void RBT_recursive_destroy(RBT_NODE **node) {
+	if ( node != NULL && *node != NULL ) {
 		RBT_NODE *n = *node;
 		if (n->left != NULL) {
 			RBT_recursive_destroy(&n->left);		

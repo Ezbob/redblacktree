@@ -14,7 +14,7 @@ typedef struct RBT_TREE {
 	int node_count;
 } RBT_TREE;
 
-RBT_TREE *RBT_init_tree();
+RBT_TREE *RBT_init_tree(void);
 
 void RBT_destroy_tree(RBT_TREE *);
 

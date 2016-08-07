@@ -3,6 +3,9 @@
 #include <stdio.h>
 #include <assert.h>
 
+void RBT_test_insert(void);
+int main(void);
+
 RBT_TREE *tree = NULL;
 
 void RBT_test_insert() {
