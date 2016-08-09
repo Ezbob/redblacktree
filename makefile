@@ -26,6 +26,9 @@ CC = gcc
 CFLAGS = -g -std=c99 -Wall -Wextra -Wpedantic -Wshadow -Wpointer-arith -Wcast-qual \
         -Wstrict-prototypes -Wmissing-prototypes
 
+MACRO_FEATURES = _POSIX_C_SOURCE
+CFLAGS += $(addprefix -D, $(MACRO_FEATURES))
+
 ## EDIT THESE VARIABLES TO CUSTOMIZE THE BUILD  
 
 # Modules within source directory and test directory

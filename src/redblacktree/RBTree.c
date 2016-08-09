@@ -7,12 +7,12 @@
 
 RBT_NODE *RBT_new_node(int key);
 RBT_TREE *RBT_init_tree(void);
-void RBT_destroy_node(RBT_NODE **node);
-void RBT_left_rotate(RBT_TREE *tree, RBT_NODE *node);
-void RBT_right_rotate(RBT_TREE *tree, RBT_NODE *node);
-void RBT_insert_fixup(RBT_TREE *tree, RBT_NODE *node);
-RBT_NODE *RBT_insert(RBT_TREE *tree, RBT_NODE *node);
-static void RBT_recursive_destroy(RBT_NODE **node);
+void RBT_destroy_node(RBT_NODE *node);
+static void RBT_left_rotate(RBT_TREE *tree, RBT_NODE *node);
+static void RBT_right_rotate(RBT_TREE *tree, RBT_NODE *node);
+static void RBT_insert_fixup(RBT_TREE *tree, RBT_NODE *node);
+static RBT_NODE *RBT_insert(RBT_TREE *tree, RBT_NODE *node);
+static void RBT_recursive_destroy(RBT_NODE *node);
 
 
 RBT_NODE *RBT_new_node(int key) {
@@ -30,13 +30,12 @@ RBT_NODE *RBT_new_node(int key) {
 	return new_node;
 }
 
-void RBT_destroy_node(RBT_NODE **node) {
-	if ( node != NULL && node != NULL ) {
-		RBT_NODE *unpacked = *node;
-		unpacked->left = NULL;
-		unpacked->right = NULL;
-		unpacked->parent = NULL;
-		free(unpacked);	
+void RBT_destroy_node(RBT_NODE *node) {
+	if ( node != NULL ) {
+		node->left = NULL;
+		node->right = NULL;
+		node->parent = NULL;
+		free(node);	
 	}
 }
 
@@ -51,26 +50,28 @@ RBT_TREE *RBT_init_tree() {
 	return new_tree;
 }
 
-static void RBT_recursive_destroy(RBT_NODE **node) {
-	if ( node != NULL && *node != NULL ) {
-		RBT_NODE *n = *node;
-		if (n->left != NULL) {
-			RBT_recursive_destroy(&n->left);		
-		}
-		if (n->right != NULL) {	
-			RBT_recursive_destroy(&n->right);
-		}
-		free(n);
+static void RBT_recursive_destroy(RBT_NODE *node) {
+
+	if ( node == NULL ) {
+		return;
+	} else if ( node->left == NULL && node->right == NULL ) {
+		// leaf node
+		RBT_destroy_node( node );
+	} else {
+		RBT_recursive_destroy( node->left );		
+		RBT_recursive_destroy( node->right );
+
+		RBT_destroy_node( node );
 	}
 }
 
 void RBT_destroy_tree(RBT_TREE *tree) {
-	RBT_recursive_destroy(&tree->root);
+	RBT_recursive_destroy(tree->root);
 	free(tree);
 }
 
-void RBT_left_rotate(RBT_TREE *tree, RBT_NODE *node) {
-	if (node->right != NULL) {
+static void RBT_left_rotate(RBT_TREE *tree, RBT_NODE *node) {
+	if ( node->right != NULL ) {
 		RBT_NODE *right_node = node->right;
 		node->right = right_node->left;
 
@@ -91,7 +92,7 @@ void RBT_left_rotate(RBT_TREE *tree, RBT_NODE *node) {
 	}
 }
 
-void RBT_right_rotate(RBT_TREE *tree, RBT_NODE *node) {
+static void RBT_right_rotate(RBT_TREE *tree, RBT_NODE *node) {
 	if ( node->left != NULL ) {
 		RBT_NODE *left_node = node->left;
 		node->left = left_node->right;
@@ -113,8 +114,11 @@ void RBT_right_rotate(RBT_TREE *tree, RBT_NODE *node) {
 	}
 }
 
-void RBT_insert_fixup(RBT_TREE *tree, RBT_NODE *node) {
-	while ( node->parent->color == RED ) {
+static void RBT_insert_fixup(RBT_TREE *tree, RBT_NODE *node) {
+	if ( tree == NULL || node == NULL ) {
+		return;
+	} 
+	while ( node->parent != NULL && node->parent->color == RED ) {
 		if ( node->parent == node->parent->parent->left ) {
 			RBT_NODE *right_node = node->parent->parent->right;
 			if ( right_node->color == RED ) {
@@ -153,7 +157,7 @@ void RBT_insert_fixup(RBT_TREE *tree, RBT_NODE *node) {
 	tree->root->color = BLACK;
 }
 
-RBT_NODE *RBT_insert(RBT_TREE *tree, RBT_NODE *node) {
+static RBT_NODE *RBT_insert(RBT_TREE *tree, RBT_NODE *node) {
 	RBT_NODE *parent = NULL;
 	RBT_NODE *iterator = tree->root;
 	
