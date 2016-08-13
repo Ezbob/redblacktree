@@ -3,8 +3,12 @@
 
 #include <stdlib.h>
 
+typedef enum RBT_color { 
+	BLACK, RED 
+} RBT_color;
+
 typedef struct RBT_NODE {
-	enum { BLACK, RED } color;
+	RBT_color color;
 	int key;
 	struct RBT_NODE *left;
 	struct RBT_NODE *right;
@@ -30,6 +34,8 @@ RBT_NODE *RBT_get_maximum(RBT_TREE *);
 
 RBT_NODE *RBT_get_minimum(RBT_TREE *);
 
-void pretty_printer(RBT_NODE *);
+void RBT_pretty_printer(RBT_NODE *);
+
+#define RBT_PRETTY_PRINT(tree) RBT_pretty_printer(tree->root)
 
 #endif

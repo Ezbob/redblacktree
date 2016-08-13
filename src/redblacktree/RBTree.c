@@ -7,23 +7,27 @@
 
 // NULL values are black per difinition, so node has  
 // to be non-NULL for it to be RED
-#define RBT_IS_RED(node) node != NULL && node->color == RED
-#define RBT_IS_BLACK(node) node == NULL || node->color == BLACK
+#define RBT_IS_RED(node) (node != NULL && node->color == RED)
+#define RBT_IS_BLACK(node) (node == NULL || node->color == BLACK)
 #define RBT_COLOR_CHAR(node) RBT_IS_RED(node) ? 'r' : 'b' 
 #define RBT_TAB_SIZE 4
 
-RBT_NODE *RBT_new_node(int key);
+RBT_NODE *RBT_new_node(int);
 RBT_TREE *RBT_init_tree(void);
-void RBT_destroy_node(RBT_NODE *node);
-static void RBT_left_rotate(RBT_TREE *tree, RBT_NODE *node);
-static void RBT_right_rotate(RBT_TREE *tree, RBT_NODE *node);
-static void RBT_insert_fixup(RBT_TREE *tree, RBT_NODE *node);
-static RBT_NODE *RBT_insert(RBT_TREE *tree, RBT_NODE *node);
-static void RBT_recursive_destroy(RBT_NODE *node);
-static void pretty_printer_helper(RBT_NODE *node, int indent);
-static RBT_NODE *RBT_find_parent(RBT_TREE *tree, RBT_NODE *node);
+void RBT_destroy_node(RBT_NODE *);
+static void RBT_left_rotate(RBT_TREE *, RBT_NODE *);
+static void RBT_right_rotate(RBT_TREE *, RBT_NODE *);
+static void RBT_insert_fixup(RBT_TREE *, RBT_NODE *);
+static RBT_NODE *RBT_insert(RBT_TREE *, RBT_NODE *);
+static void RBT_recursive_destroy(RBT_NODE *);
+static void RBT_pretty_printer_helper(RBT_NODE *node, int indent);
+static RBT_NODE *RBT_find_parent(RBT_TREE *, RBT_NODE *);
 static void RBT_remove(RBT_TREE *, RBT_NODE *);
-
+static void RBT_remove_fixup(RBT_TREE *, RBT_NODE *);
+static void RBT_transplant_tree(RBT_TREE *, RBT_NODE *, RBT_NODE *);
+static RBT_NODE *RBT_minimum(RBT_NODE *);
+static RBT_NODE *RBT_maximum(RBT_NODE *);
+static void RBT_recursive_find(RBT_NODE * node, int key, RBT_NODE **result);
 
 RBT_NODE *RBT_new_node(int key) {
 	RBT_NODE *new_node;
@@ -206,14 +210,174 @@ RBT_NODE *RBT_add(RBT_TREE *tree, int key) {
 	return RBT_insert(tree, RBT_new_node(key));
 }
 
-void pretty_printer(RBT_NODE *from_node) {
+static RBT_NODE *RBT_minimum(RBT_NODE *node) {
+	if ( node == NULL ) {
+		return NULL;
+	} else if ( node->left == NULL ) {
+		return node;
+	}
+	RBT_NODE *iterator = node->left;
+	while (iterator != NULL) {
+		iterator = iterator->left;
+	}
+	return iterator;
+}
+
+static RBT_NODE *RBT_maximum(RBT_NODE *node) {
+	if ( node == NULL ) {
+		return NULL;
+	} else if ( node->right == NULL ) {
+		return node;
+	}
+	RBT_NODE *iterator = node->right;
+	while (iterator != NULL) {
+		iterator = iterator->right;
+	}
+	return iterator;
+}
+
+static void RBT_transplant_tree(RBT_TREE *tree, RBT_NODE *old, RBT_NODE *transplant) {
+
+	if ( old->parent == NULL ) {
+		tree->root = transplant;
+	} else if ( old == old->parent->left ) {
+		old->parent->left = transplant;
+	} else {
+		old->parent->right = transplant;
+	}
+	transplant->parent = old->parent;
+}
+
+static void RBT_remove_fixup(RBT_TREE *tree, RBT_NODE *node) {
+	while ( RBT_IS_BLACK(node) && node != tree->root ) {
+		if ( node == node->parent->left ) {
+			RBT_NODE *sibling = node->parent->right;
+			if ( RBT_IS_RED(sibling) ) {
+				sibling->color = BLACK;
+				node->parent->color = RED;
+				RBT_left_rotate(tree, node->parent);
+				sibling = node->parent->right;
+			}
+			if ( RBT_IS_BLACK(sibling->left) && RBT_IS_BLACK(sibling->right) ) {
+				sibling->color = RED;
+				node = node->parent;
+			} else if ( RBT_IS_BLACK(sibling->right) ) {
+				sibling->left->color = BLACK;
+				sibling->color = RED;
+				RBT_right_rotate(tree, sibling);
+				sibling = node->parent->right;
+			}
+			sibling->color = node->parent->color;
+			node->parent->color = BLACK;
+			sibling->right->color = BLACK;
+			RBT_left_rotate(tree, node->parent);
+			node = tree->root;
+		} else {
+			RBT_NODE *sibling = node->parent->left;
+			if ( RBT_IS_RED(sibling) ) {
+				sibling->color = BLACK;
+				node->parent->color = RED;
+				RBT_right_rotate(tree, node->parent);
+				sibling = node->parent->left;
+			}
+			if ( RBT_IS_BLACK(sibling->right) && RBT_IS_BLACK(sibling->left) ) {
+				sibling->color = RED;
+				node = node->parent;
+			} else if ( RBT_IS_BLACK(sibling->left) ) {
+				sibling->right->color = BLACK;
+				sibling->color = RED;
+				RBT_left_rotate(tree, sibling);
+				sibling = node->parent->left;
+			}
+			sibling->color = node->parent->color;
+			node->parent->color = BLACK;
+			sibling->left->color = BLACK;
+			RBT_right_rotate(tree, node->parent);
+			node = tree->root;
+		}
+	}
+	node->color = BLACK;
+}
+
+static void RBT_recursive_find(RBT_NODE * node, int key, RBT_NODE **result) {
+ 	if (node->key == key) {
+ 		result = &node;
+ 		return;
+ 	} else if (node->left == NULL && node->right == NULL) {
+ 		return;
+ 	} else {
+ 		RBT_NODE **l_result = NULL;
+ 		RBT_recursive_find(node->left, key, l_result);
+
+ 		if ( l_result != NULL ) {
+ 			result = l_result;
+ 			return;
+ 		}
+
+ 		RBT_NODE **r_result = NULL;
+ 		RBT_recursive_find(node->right, key, result);
+
+ 		if ( r_result != NULL ) {
+ 			result = r_result;
+ 			return;
+ 		}
+ 	}
+}
+
+RBT_NODE *RBT_find(RBT_TREE *tree, int key) {
+
+	if ( tree == NULL ) {
+		return NULL;
+	}
+	RBT_NODE *result = NULL;
+	RBT_recursive_find(tree->root, key, &result);
+	return result;
+}
+
+void RBT_delete(RBT_TREE *tree, int key) {
+}
+
+static void RBT_remove(RBT_TREE *tree, RBT_NODE *node) {
+
+	RBT_NODE *point;
+	RBT_NODE *old = node;
+	RBT_color old_color = node->color;
+
+	if ( node->left == NULL ) {
+		point = node->right;
+		RBT_transplant_tree(tree, node, node->right);		
+	} else if ( node->right == NULL ) {
+		point = node->left;
+		RBT_transplant_tree(tree, node, node->left);
+	} else {
+		old = RBT_minimum(node->right);
+		old_color = old->color;
+		point = old->right;
+		if ( old->parent == node ) {
+			point->parent = old;
+		} else {
+			RBT_transplant_tree(tree, old, old->right);
+			old->right = node->right;
+			old->right->parent = old;
+		}
+		RBT_transplant_tree(tree, node, old);
+		old->left = node->left;
+		old->left->parent = old;
+		old->color = node->color;
+	}
+	if ( old_color == BLACK ) {
+		RBT_remove_fixup(tree, point);
+	}
+}
+
+void RBT_pretty_printer(RBT_NODE *from_node) {
 	if ( from_node == NULL ) {
 		return;
 	}
-	pretty_printer_helper(from_node, 0);
+	RBT_pretty_printer_helper(from_node, 0);
 }
 
-static void pretty_printer_helper(RBT_NODE *node, int indent) {
+static void RBT_pretty_printer_helper(RBT_NODE *node, int indent) {
 
 	if ( node == NULL ) {
 		//printf("%*s%i: NULL\n", indent, " ", (indent / RBT_TAB_SIZE) + 1);
@@ -222,8 +386,8 @@ static void pretty_printer_helper(RBT_NODE *node, int indent) {
 
 		printf("%*s%i: %i,%c\n", indent, " ", (indent / RBT_TAB_SIZE) + 1, node->key, RBT_COLOR_CHAR(node));
 
-		pretty_printer_helper(node->left, indent + RBT_TAB_SIZE);		
-		pretty_printer_helper(node->right, indent + RBT_TAB_SIZE);
+		RBT_pretty_printer_helper(node->left, indent + RBT_TAB_SIZE);		
+		RBT_pretty_printer_helper(node->right, indent + RBT_TAB_SIZE);
 
 	}
 }
