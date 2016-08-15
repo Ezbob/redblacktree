@@ -3,12 +3,12 @@
 
 #include <stdlib.h>
 
-typedef enum RBT_color { 
-	BLACK, RED 
-} RBT_color;
+enum RBT_color { 
+	RBT_BLACK, RBT_RED 
+};
 
 typedef struct RBT_NODE {
-	RBT_color color;
+	enum RBT_color color;
 	int key;
 	struct RBT_NODE *left;
 	struct RBT_NODE *right;
