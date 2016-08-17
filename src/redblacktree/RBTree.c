@@ -25,9 +25,9 @@ static RBT_NODE *RBT_find_parent(RBT_TREE *, RBT_NODE *);
 static void RBT_remove(RBT_TREE *, RBT_NODE *);
 static void RBT_remove_fixup(RBT_TREE *, RBT_NODE *);
 static void RBT_transplant_tree(RBT_TREE *, RBT_NODE *, RBT_NODE *);
-static RBT_NODE *RBT_minimum(RBT_NODE *);
-static RBT_NODE *RBT_maximum(RBT_NODE *);
-static RBT_NODE *RBT_iterative_find(RBT_NODE *node, int key);
+static RBT_NODE *RBT_minimum(const RBT_NODE *);
+static RBT_NODE *RBT_maximum(const RBT_NODE *);
+static RBT_NODE *RBT_iterative_find( const RBT_NODE *node, const int key );
 
 RBT_NODE *RBT_new_node( int key ) {
 	RBT_NODE *new_node;
@@ -210,27 +210,27 @@ RBT_NODE *RBT_add( RBT_TREE *tree, int key ) {
 	return RBT_insert( tree, RBT_new_node(key) );
 }
 
-static RBT_NODE *RBT_minimum( RBT_NODE *node ) {
+static RBT_NODE *RBT_minimum( const RBT_NODE *node ) {
 	if ( node == NULL ) {
 		return NULL;
 	} else if ( node->left == NULL ) {
 		return node;
 	}
 	RBT_NODE *iterator = node->left;
-	while (iterator != NULL) {
+	while (iterator->left != NULL) {
 		iterator = iterator->left;
 	}
 	return iterator;
 }
 
-static RBT_NODE *RBT_maximum( RBT_NODE *node ) {
+static RBT_NODE *RBT_maximum( const RBT_NODE *node ) {
 	if ( node == NULL ) {
 		return NULL;
 	} else if ( node->right == NULL ) {
 		return node;
 	}
 	RBT_NODE *iterator = node->right;
-	while ( iterator != NULL ) {
+	while ( iterator->right != NULL ) {
 		iterator = iterator->right;
 	}
 	return iterator;
@@ -245,7 +245,9 @@ static void RBT_transplant_tree( RBT_TREE *tree, RBT_NODE *old, RBT_NODE *transp
 	} else {
 		old->parent->right = transplant;
 	}
-	transplant->parent = old->parent;
+	if ( transplant != NULL ) {
+		transplant->parent = old->parent;	
+	} 
 }
 
 static void RBT_remove_fixup( RBT_TREE *tree, RBT_NODE *node ) {
@@ -299,15 +301,7 @@ static void RBT_remove_fixup( RBT_TREE *tree, RBT_NODE *node ) {
 	node->color = RBT_BLACK;
 }
 
-static RBT_NODE *RBT_iterative_find( RBT_NODE *node, int key ) {
-
-	if ( node == NULL ) {
-		return NULL;	
-	}
-	if ( node->key == key ) {
-		return node;
-	}
-
+static RBT_NODE *RBT_iterative_find( const RBT_NODE *node, const int key ) {
 	RBT_NODE *iterator = node;
 
 	while ( iterator != NULL && iterator->key != key ) {
@@ -340,13 +334,19 @@ static void RBT_remove( RBT_TREE *tree, RBT_NODE *node ) {
 	} else if ( node->right == NULL ) {
 		point = node->left;
 		RBT_transplant_tree(tree, node, node->left);
+	} else if ( node->right == NULL && node->left == NULL ) {
+		// this step is needed since the book uses the T.nill difinition
+		// which is always black and is a allocated object (in contrast to our NULL) 
+		RBT_transplant_tree(tree, node, NULL);
 	} else {
-		old = RBT_minimum(node->right);
+		old = RBT_minimum( node->right );
 		old_color = old->color;
-
 		point = old->right;
+
 		if ( old->parent == node ) {
-			point->parent = old;
+			if ( point != NULL ) {
+				point->parent = old;	
+			}
 		} else {
 			RBT_transplant_tree(tree, old, old->right);
 			old->right = node->right;
@@ -360,6 +360,8 @@ static void RBT_remove( RBT_TREE *tree, RBT_NODE *node ) {
 	if ( old_color == RBT_BLACK ) {
 		RBT_remove_fixup(tree, point);
 	}
+	free(node);
+	tree->node_count--;
 }
 
 void RBT_delete( RBT_TREE *tree, int key ) {
@@ -388,14 +390,15 @@ void RBT_pretty_printer(RBT_NODE *from_node) {
 static void RBT_pretty_printer_helper(RBT_NODE *node, int indent) {
 
 	if ( node == NULL ) {
-		//printf("%*s%i: NULL\n", indent, " ", (indent / RBT_TAB_SIZE) + 1);
+		printf("%*s%i: NULL,b\n", indent, "", (indent / RBT_TAB_SIZE) + 1);
 		return;
 	} else {
 
-		printf("%*s%i: %i,%c\n", indent, " ", (indent / RBT_TAB_SIZE) + 1, node->key, RBT_COLOR_CHAR(node));
-
-		RBT_pretty_printer_helper(node->left, indent + RBT_TAB_SIZE);		
 		RBT_pretty_printer_helper(node->right, indent + RBT_TAB_SIZE);
+
+		printf("%*s%i: %i,%c\n", indent, " ", (indent / RBT_TAB_SIZE) + 1, node->key, RBT_COLOR_CHAR(node));
+		
+		RBT_pretty_printer_helper(node->left, indent + RBT_TAB_SIZE);
 
 	}
 }

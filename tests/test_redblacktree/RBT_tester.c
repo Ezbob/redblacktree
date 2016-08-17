@@ -1,6 +1,7 @@
 #include "RBTree.h"
 #include <stdlib.h>
 #include "cutest.h"
+#include <stdbool.h>
 
 void RBT_test_insert(void);
 void RBT_test_remove(void);
@@ -88,7 +89,7 @@ void RBT_test_min_max() {
 	TEST_CHECK( min != NULL );
 	TEST_CHECK( min != NULL && min->key == 7 );
 
-	RBT_NODE *max = RBT_get_minimum(tree);
+	RBT_NODE *max = RBT_get_maximum(tree);
 	TEST_CHECK( max != NULL );
 	TEST_CHECK( max != NULL && max->key == 30 );
 
@@ -116,13 +117,21 @@ void RBT_test_remove() {
 	RBT_add(tree, 9);
 	RBT_add(tree, 7);
 
+	printf("\n");
+
+	RBT_PRETTY_PRINT(tree);
+
 	TEST_CHECK( tree->node_count == 5 );
 
 	RBT_delete( tree, 9 );
 
+	RBT_PRETTY_PRINT(tree);
+
 	TEST_CHECK( tree->node_count == 4 );
 
 	RBT_delete( tree, 7 );
+
+	RBT_PRETTY_PRINT(tree);
 
 	TEST_CHECK( tree->node_count == 3 );
 
