@@ -18,9 +18,8 @@ typedef struct RBT_STACK {
 	char *buffer; 
 } RBT_STACK;
 
-RBT_NODE *RBT_new_node(int);
-RBT_TREE *RBT_init_tree(void);
-void RBT_destroy_node(RBT_NODE *);
+static RBT_NODE *RBT_new_node(int);
+static void RBT_destroy_node(RBT_NODE *);
 static void RBT_left_rotate(RBT_TREE *, RBT_NODE *);
 static void RBT_right_rotate(RBT_TREE *, RBT_NODE *);
 static void RBT_insert_fixup(RBT_TREE *, RBT_NODE *);
@@ -40,7 +39,7 @@ static RBT_NODE *RBT_maximum(RBT_NODE *);
 static RBT_NODE *RBT_iterative_find( RBT_NODE *node, int key );
 
 
-RBT_NODE *RBT_new_node( int key ) {
+static RBT_NODE *RBT_new_node( int key ) {
 	RBT_NODE *new_node;
 	new_node = malloc( sizeof( RBT_NODE ) );
 	if ( new_node == NULL ) {
@@ -55,7 +54,7 @@ RBT_NODE *RBT_new_node( int key ) {
 	return new_node;
 }
 
-void RBT_destroy_node( RBT_NODE *node ) {
+static void RBT_destroy_node( RBT_NODE *node ) {
 	if ( node != NULL ) {
 		node->left = NULL;
 		node->right = NULL;
