@@ -37,5 +37,8 @@ RBT_NODE *RBT_get_minimum(RBT_TREE *);
 void RBT_pretty_printer(RBT_NODE *);
 
 #define RBT_PRETTY_PRINT(tree) RBT_pretty_printer(tree->root)
+#define RBT_IS_RED(node) (node != NULL && node->color == RBT_RED)
+#define RBT_IS_BLACK(node) (node == NULL || node->color == RBT_BLACK)
+#define RBT_NODE_COUNT(tree) ( tree->node_count )
 
 #endif

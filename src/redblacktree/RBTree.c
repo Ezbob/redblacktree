@@ -8,8 +8,7 @@
 
 // NULL values are black per difinition, so node has  
 // to be non-NULL for it to be RBT_RED
-#define RBT_IS_RED(node) (node != NULL && node->color == RBT_RED)
-#define RBT_IS_BLACK(node) (node == NULL || node->color == RBT_BLACK)
+
 #define RBT_COLOR_CHAR(node) RBT_IS_RED(node) ? 'r' : 'b' 
 #define RBT_TAB_SIZE 4
 
@@ -446,12 +445,12 @@ static void RBT_pretty_printer_helper(RBT_NODE *node, RBT_STACK *stack) {
 
 	printf( "%s |--", stack->buffer );
 	RBT_pretty_push(stack, '|');
-	RBT_pretty_printer_helper(node->right, stack);
+	RBT_pretty_printer_helper(node->left, stack);
 	RBT_pretty_pop(stack);
 
 	printf( "%s `--", stack->buffer );
 	RBT_pretty_push(stack, ' ');
-	RBT_pretty_printer_helper(node->left, stack);
+	RBT_pretty_printer_helper(node->right, stack);
 	RBT_pretty_pop(stack);
 	
 }
