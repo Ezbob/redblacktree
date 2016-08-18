@@ -16,6 +16,8 @@ void RBT_test_insert() {
 	RBT_add(tree, 10);
 	RBT_pretty_printer(tree->root);
 
+	printf("\n");
+
 	RBT_add(tree, 12);
 	
 	RBT_pretty_printer(tree->root);

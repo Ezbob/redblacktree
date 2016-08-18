@@ -1,6 +1,7 @@
 #include "RBTree.h"
 #include <stdlib.h>
 #include <stdio.h>
+#include <assert.h>
 
 #define RBT_ERROR(message) fprintf(stderr, "Error: %s\n", message)
 #define RBT_ERROR_STOP(code, message) fprintf(stderr, "Error: %s\n", message); exit(code)
@@ -12,6 +13,12 @@
 #define RBT_COLOR_CHAR(node) RBT_IS_RED(node) ? 'r' : 'b' 
 #define RBT_TAB_SIZE 4
 
+typedef struct RBT_STACK {
+	size_t size;
+	size_t next_index;
+	char *buffer; 
+} RBT_STACK;
+
 RBT_NODE *RBT_new_node(int);
 RBT_TREE *RBT_init_tree(void);
 void RBT_destroy_node(RBT_NODE *);
@@ -20,14 +27,19 @@ static void RBT_right_rotate(RBT_TREE *, RBT_NODE *);
 static void RBT_insert_fixup(RBT_TREE *, RBT_NODE *);
 static RBT_NODE *RBT_insert(RBT_TREE *, RBT_NODE *);
 static void RBT_recursive_destroy(RBT_NODE *);
-static void RBT_pretty_printer_helper(RBT_NODE *node, int indent);
+static RBT_STACK *RBT_new_stack( size_t size );
+static void RBT_destroy_stack( RBT_STACK * stack );
+static void RBT_pretty_printer_helper(RBT_NODE *node, RBT_STACK *);
+static void RBT_pretty_push( RBT_STACK * stack, char character);
+static void RBT_pretty_pop( RBT_STACK * stack );
 static RBT_NODE *RBT_find_parent(RBT_TREE *, RBT_NODE *);
 static void RBT_remove(RBT_TREE *, RBT_NODE *);
 static void RBT_remove_fixup(RBT_TREE *, RBT_NODE *);
 static void RBT_transplant_tree(RBT_TREE *, RBT_NODE *, RBT_NODE *);
-static RBT_NODE *RBT_minimum(const RBT_NODE *);
-static RBT_NODE *RBT_maximum(const RBT_NODE *);
-static RBT_NODE *RBT_iterative_find( const RBT_NODE *node, const int key );
+static RBT_NODE *RBT_minimum(RBT_NODE *);
+static RBT_NODE *RBT_maximum(RBT_NODE *);
+static RBT_NODE *RBT_iterative_find( RBT_NODE *node, int key );
+
 
 RBT_NODE *RBT_new_node( int key ) {
 	RBT_NODE *new_node;
@@ -210,7 +222,7 @@ RBT_NODE *RBT_add( RBT_TREE *tree, int key ) {
 	return RBT_insert( tree, RBT_new_node(key) );
 }
 
-static RBT_NODE *RBT_minimum( const RBT_NODE *node ) {
+static RBT_NODE *RBT_minimum( RBT_NODE *node ) {
 	if ( node == NULL ) {
 		return NULL;
 	} else if ( node->left == NULL ) {
@@ -223,7 +235,7 @@ static RBT_NODE *RBT_minimum( const RBT_NODE *node ) {
 	return iterator;
 }
 
-static RBT_NODE *RBT_maximum( const RBT_NODE *node ) {
+static RBT_NODE *RBT_maximum( RBT_NODE *node ) {
 	if ( node == NULL ) {
 		return NULL;
 	} else if ( node->right == NULL ) {
@@ -301,7 +313,7 @@ static void RBT_remove_fixup( RBT_TREE *tree, RBT_NODE *node ) {
 	node->color = RBT_BLACK;
 }
 
-static RBT_NODE *RBT_iterative_find( const RBT_NODE *node, const int key ) {
+static RBT_NODE *RBT_iterative_find( RBT_NODE *node, int key ) {
 	RBT_NODE *iterator = node;
 
 	while ( iterator != NULL && iterator->key != key ) {
@@ -380,25 +392,62 @@ RBT_NODE *RBT_get_minimum(RBT_TREE *tree) {
 	return RBT_minimum(tree->root);
 }
 
+
+static RBT_STACK *RBT_new_stack( size_t size ) {
+	RBT_STACK *new_stack = malloc( sizeof(RBT_STACK) );
+	new_stack->buffer = calloc( sizeof(char), size );
+	
+	new_stack->size = size;
+	new_stack->next_index = 0;
+
+	return new_stack;
+}
+
+static void RBT_destroy_stack( RBT_STACK * stack ) {
+	free(stack->buffer);
+	free(stack);
+}
+
+static void RBT_pretty_push( RBT_STACK * stack, char character ) {
+	assert(stack->next_index <= stack->size - 5);
+
+	stack->buffer[ stack->next_index++ ] = ' ';
+	stack->buffer[ stack->next_index++ ] = character;
+	stack->buffer[ stack->next_index++ ] = ' ';
+	stack->buffer[ stack->next_index++ ] = ' ';
+	stack->buffer[ stack->next_index ] = '\0';
+}
+
+static void RBT_pretty_pop( RBT_STACK * stack ) {
+	stack->buffer[ stack->next_index -= 4 ] = '\0';
+}
+
 void RBT_pretty_printer(RBT_NODE *from_node) {
 	if ( from_node == NULL ) {
 		return;
 	}
-	RBT_pretty_printer_helper(from_node, 0);
+	RBT_STACK *stack = RBT_new_stack(2046);
+	RBT_pretty_printer_helper(from_node, stack);
+	RBT_destroy_stack(stack);
 }
 
-static void RBT_pretty_printer_helper(RBT_NODE *node, int indent) {
+static void RBT_pretty_printer_helper(RBT_NODE *node, RBT_STACK *stack) {
 
-	if ( node == NULL ) {
-		printf("%*s%i: NULL,b\n", indent, "", (indent / RBT_TAB_SIZE) + 1);
+	if (node == NULL) {
+		printf("(NULL, b)\n");
 		return;
 	} else {
-
-		RBT_pretty_printer_helper(node->right, indent + RBT_TAB_SIZE);
-
-		printf("%*s%i: %i,%c\n", indent, " ", (indent / RBT_TAB_SIZE) + 1, node->key, RBT_COLOR_CHAR(node));
-		
-		RBT_pretty_printer_helper(node->left, indent + RBT_TAB_SIZE);
-
+		printf("(%i, %c)\n",node->key, RBT_COLOR_CHAR(node));	
 	}
+
+	printf( "%s `--", stack->buffer );
+	RBT_pretty_push(stack, '|');
+	RBT_pretty_printer_helper(node->right, stack);
+	RBT_pretty_pop(stack);
+
+	printf( "%s `--", stack->buffer );
+	RBT_pretty_push(stack, ' ');
+	RBT_pretty_printer_helper(node->left, stack);
+	RBT_pretty_pop(stack);
+	
 }
