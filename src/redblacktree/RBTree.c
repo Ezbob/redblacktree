@@ -433,6 +433,10 @@ void RBT_pretty_printer(RBT_NODE *from_node) {
 
 static void RBT_pretty_printer_helper(RBT_NODE *node, RBT_STACK *stack) {
 
+	if ( stack == NULL ) {
+		return;
+	}
+
 	if (node == NULL) {
 		printf("(NULL, b)\n");
 		return;
@@ -440,7 +444,7 @@ static void RBT_pretty_printer_helper(RBT_NODE *node, RBT_STACK *stack) {
 		printf("(%i, %c)\n",node->key, RBT_COLOR_CHAR(node));	
 	}
 
-	printf( "%s `--", stack->buffer );
+	printf( "%s |--", stack->buffer );
 	RBT_pretty_push(stack, '|');
 	RBT_pretty_printer_helper(node->right, stack);
 	RBT_pretty_pop(stack);
