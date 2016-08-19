@@ -13,6 +13,22 @@ int RBT_is_RB_tree(RBT_TREE *);
 bool RBT_has_all_black_leaves(RBT_NODE *node);
 int RBT_has_even_black_height(RBT_NODE *, int height);
 int RBT_red_has_black_children(RBT_NODE *);
+RBT_TREE *RBT_test_tree_default(void);
+
+static int default_keys[] = { 10, 12, 20, 34, 6, 3 };
+static int default_data[] = { 456, 234, 412, 231, 2314, 23 };
+
+RBT_TREE *RBT_test_tree_default() {
+	RBT_TREE *tree = RBT_init_tree();
+
+	for ( int i = 0; i < 6; ++i ) {
+		RBT_add(tree, default_keys[i], default_data[i]);
+	}
+
+	TEST_CHECK( RBT_NODE_COUNT(tree) == 6 );
+
+	return tree;
+}
 
 int RBT_is_RB_tree( RBT_TREE *tree ) {
 
@@ -88,30 +104,30 @@ void RBT_test_insert() {
 	RBT_TREE *tree = RBT_init_tree();
 	printf("\n");
 
-	RBT_add(tree, 10);
+	RBT_add(tree, 10, NULL);
 	RBT_pretty_printer(tree->root);
 
 	TEST_CHECK( RBT_is_RB_tree(tree) );
 
-	RBT_add(tree, 12);
+	RBT_add(tree, 12, NULL);
 	
 	RBT_pretty_printer(tree->root);
 
 	TEST_CHECK( RBT_is_RB_tree(tree) );
 
-	RBT_add(tree, 20);
+	RBT_add(tree, 20, NULL);
 
 	RBT_pretty_printer(tree->root);
 
 	TEST_CHECK( RBT_is_RB_tree(tree) );
 
-	RBT_add(tree, 9);
+	RBT_add(tree, 9, NULL);
 
 	RBT_pretty_printer(tree->root);
 
 	TEST_CHECK( RBT_is_RB_tree(tree) );
 
-	RBT_add(tree, 7);
+	RBT_add(tree, 7, NULL);
 
 	RBT_pretty_printer(tree->root);
 
@@ -122,15 +138,7 @@ void RBT_test_insert() {
 }
 
 void RBT_test_find() {
-	RBT_TREE *tree = RBT_init_tree();
-
-	RBT_add(tree, 10);
-	RBT_add(tree, 12);
-	RBT_add(tree, 20);
-	RBT_add(tree, 9);
-	RBT_add(tree, 7);
-
-	TEST_CHECK( tree->node_count == 5 );
+	RBT_TREE *tree = RBT_test_tree_default();
 
 	TEST_CHECK( RBT_is_RB_tree(tree) );
 
@@ -162,15 +170,7 @@ void RBT_test_find() {
 }
 
 void RBT_test_min_max() {
-	RBT_TREE *tree = RBT_init_tree();
-
-	RBT_add(tree, 10);
-	RBT_add(tree, 12);
-	RBT_add(tree, 20);
-	RBT_add(tree, 9);
-	RBT_add(tree, 7);
-	RBT_add(tree, 30);
-
+	RBT_TREE *tree = RBT_test_tree_default();
 	TEST_CHECK( RBT_is_RB_tree(tree) );
 
 	RBT_NODE *min = RBT_get_minimum(tree);
@@ -197,14 +197,7 @@ void RBT_test_min_max_null() {
 }
 
 void RBT_test_remove() {
-	RBT_TREE *tree = RBT_init_tree();
-
-	RBT_add(tree, 10);
-	RBT_add(tree, 12);
-	RBT_add(tree, 20);
-	RBT_add(tree, 9);
-	RBT_add(tree, 7);
-
+	RBT_TREE *tree = RBT_test_tree_default();
 	printf("\n");
 
 	RBT_PRETTY_PRINT(tree);

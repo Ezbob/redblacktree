@@ -18,7 +18,7 @@ typedef struct RBT_STACK {
 	char *buffer; 
 } RBT_STACK;
 
-static RBT_NODE *RBT_new_node(int);
+static RBT_NODE *RBT_new_node( int, void *data );
 static void RBT_destroy_node(RBT_NODE *);
 static void RBT_left_rotate(RBT_TREE *, RBT_NODE *);
 static void RBT_right_rotate(RBT_TREE *, RBT_NODE *);
@@ -31,7 +31,7 @@ static void RBT_pretty_printer_helper(RBT_NODE *node, RBT_STACK *);
 static void RBT_pretty_push( RBT_STACK * stack, char character);
 static void RBT_pretty_pop( RBT_STACK * stack );
 static RBT_NODE *RBT_find_parent(RBT_TREE *, RBT_NODE *);
-static void RBT_remove(RBT_TREE *, RBT_NODE *);
+static int RBT_remove(RBT_TREE *, RBT_NODE *);
 static void RBT_remove_fixup(RBT_TREE *, RBT_NODE *);
 static void RBT_transplant_tree(RBT_TREE *, RBT_NODE *, RBT_NODE *);
 static RBT_NODE *RBT_minimum(RBT_NODE *);
@@ -39,7 +39,7 @@ static RBT_NODE *RBT_maximum(RBT_NODE *);
 static RBT_NODE *RBT_iterative_find( RBT_NODE *node, int key );
 
 
-static RBT_NODE *RBT_new_node( int key ) {
+static RBT_NODE *RBT_new_node( int key, void *data ) {
 	RBT_NODE *new_node;
 	new_node = malloc( sizeof( RBT_NODE ) );
 	if ( new_node == NULL ) {
@@ -50,12 +50,14 @@ static RBT_NODE *RBT_new_node( int key ) {
 	new_node->right = NULL;
 	new_node->parent = NULL;
 	new_node->key = key;
+	new_node->data = data;
 	new_node->color = RBT_BLACK;
 	return new_node;
 }
 
 static void RBT_destroy_node( RBT_NODE *node ) {
 	if ( node != NULL ) {
+		node->data = NULL;
 		node->left = NULL;
 		node->right = NULL;
 		node->parent = NULL;
@@ -215,9 +217,10 @@ static RBT_NODE *RBT_insert( RBT_TREE *tree, RBT_NODE *node ) {
 	return node;
 }
 
-RBT_NODE *RBT_add( RBT_TREE *tree, int key ) {
+void *RBT_add( RBT_TREE *tree, int key, void *data ) {
 	tree->node_count++;
-	return RBT_insert( tree, RBT_new_node(key) );
+	RBT_NODE *inserted = RBT_insert( tree, RBT_new_node( key, data ) );
+	return inserted == NULL ? inserted : inserted->data;
 }
 
 static RBT_NODE *RBT_minimum( RBT_NODE *node ) {
@@ -324,15 +327,19 @@ static RBT_NODE *RBT_iterative_find( RBT_NODE *node, int key ) {
 	return iterator;
 }
 
-RBT_NODE *RBT_find( RBT_TREE *tree, int key ) {
+void *RBT_find( RBT_TREE *tree, int key ) {
 
 	if ( tree == NULL ) {
 		return NULL;
 	}
-	return RBT_iterative_find(tree->root, key);
+	RBT_NODE *node = RBT_iterative_find(tree->root, key);
+	return node == NULL ? node : node->data ;
 }
 
-static void RBT_remove( RBT_TREE *tree, RBT_NODE *node ) {
+static int RBT_remove( RBT_TREE *tree, RBT_NODE *node ) {
+	if ( tree == NULL || node == NULL ) {
+		return 0;
+	}
 
 	RBT_NODE *point;
 	RBT_NODE *old = node;
@@ -372,22 +379,27 @@ static void RBT_remove( RBT_TREE *tree, RBT_NODE *node ) {
 	}
 	free(node);
 	tree->node_count--;
+
+	return 1;
 }
 
-void RBT_delete( RBT_TREE *tree, int key ) {
+int RBT_delete( RBT_TREE *tree, int key ) {
 	RBT_NODE *find_node = RBT_iterative_find( tree->root, key );
 
 	if ( find_node != NULL ) {
-		RBT_remove( tree, find_node );	
+		return RBT_remove( tree, find_node );	
 	} 
+	return 0;	
 }
 
-RBT_NODE *RBT_get_maximum(RBT_TREE *tree) {
-	return RBT_maximum(tree->root);
+void *RBT_get_maximum(RBT_TREE *tree) {
+	RBT_NODE *node = RBT_maximum(tree->root);
+	return node == NULL ? node : node->data;
 }
 
-RBT_NODE *RBT_get_minimum(RBT_TREE *tree) {
-	return RBT_minimum(tree->root);
+void *RBT_get_minimum(RBT_TREE *tree) {
+	RBT_NODE *node = RBT_minimum(tree->root);
+	return node == NULL ? node : node->data;
 }
 
 
@@ -439,7 +451,7 @@ static void RBT_pretty_printer_helper(RBT_NODE *node, RBT_STACK *stack) {
 		printf("(NULL, b)\n");
 		return;
 	} else {
-		printf("(%i, %c)\n",node->key, RBT_COLOR_CHAR(node));	
+		printf("(k:%i,c:%c,d:%p)\n", node->key, RBT_COLOR_CHAR(node), node->data);	
 	}
 
 	printf( "%s |--", stack->buffer );
