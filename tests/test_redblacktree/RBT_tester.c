@@ -2,6 +2,7 @@
 #include <stdlib.h>
 #include "cutest.h"
 #include <stdbool.h>
+#include <time.h>
 
 void RBT_test_insert(void);
 void RBT_test_remove(void);
@@ -11,15 +12,28 @@ void RBT_test_min_max_null(void);
 
 int RBT_is_RB_tree(RBT_TREE *);
 bool RBT_has_all_black_leaves(RBT_NODE *node);
-int RBT_has_even_black_height(RBT_NODE *, int height);
+int RBT_has_even_black_height(RBT_NODE *);
 int RBT_red_has_black_children(RBT_NODE *);
 RBT_TREE *RBT_test_tree_default(void);
 
 static int default_keys[] = { 10, 12, 20, 34, 6, 3 };
-static int default_data[] = { 456, 234, 412, 231, 2314, 23 };
+static long int *default_data[] = { NULL, NULL, NULL, NULL, NULL, NULL };
+static int seed_set = 0;
 
 RBT_TREE *RBT_test_tree_default() {
 	RBT_TREE *tree = RBT_init_tree();
+
+	if ( !seed_set ) {
+		srand(time(NULL));
+		seed_set = 1;
+	}
+
+	int n = sizeof(default_keys) / sizeof(default_keys[0]); 
+
+	for ( int i = 0; i < n; ++i ) {
+		long int data = rand();
+		default_data[i] = &data;
+	}
 
 	for ( int i = 0; i < 6; ++i ) {
 		RBT_add(tree, default_keys[i], default_data[i]);
@@ -48,7 +62,7 @@ int RBT_is_RB_tree( RBT_TREE *tree ) {
 		fprintf(stderr, "Error: Not all leaves are black\n");
 	}
 */
-	current = RBT_has_even_black_height(tree->root, 1);
+	current = RBT_has_even_black_height(tree->root);
 	is_RB = is_RB && current;
 
 	if ( !current ) {
@@ -65,25 +79,26 @@ int RBT_is_RB_tree( RBT_TREE *tree ) {
 	return is_RB;
 }
 
-int RBT_has_even_black_height(RBT_NODE *node, int height) {
+int RBT_has_even_black_height(RBT_NODE *node) {
 	if ( node == NULL ) {
 		return 1;
 	}
 
 	int left, right, this_node;
 
-	left = RBT_has_even_black_height( node->left, height + this_node );
+
+
+	left = RBT_has_even_black_height( node->left);
 	if ( left == 0 ) {
 		return left;
 	}
 
-	right = RBT_has_even_black_height( node->right, height + this_node );
+	right = RBT_has_even_black_height( node->right );
 	if ( right == 0 ) {
 		return right;
 	}
 
-	this_node = RBT_IS_BLACK( node ) ? 1 : 0; 
-
+	this_node = RBT_IS_BLACK( node ) ? 1 : 0;
 	return left == right ? left + this_node : 0;
 }
 
