@@ -32,7 +32,7 @@ int RBT_is_RB_tree( RBT_TREE *tree ) {
 		fprintf(stderr, "Error: Not all leaves are black\n");
 	}
 */
-	current = RBT_has_even_black_height(tree->root, 0);
+	current = RBT_has_even_black_height(tree->root, 1);
 	is_RB = is_RB && current;
 
 	if ( !current ) {
@@ -56,12 +56,19 @@ int RBT_has_even_black_height(RBT_NODE *node, int height) {
 
 	int left, right, this_node;
 
+	left = RBT_has_even_black_height( node->left, height + this_node );
+	if ( left == 0 ) {
+		return left;
+	}
+
+	right = RBT_has_even_black_height( node->right, height + this_node );
+	if ( right == 0 ) {
+		return right;
+	}
+
 	this_node = RBT_IS_BLACK( node ) ? 1 : 0; 
 
-	left = RBT_has_even_black_height( node->left, height + this_node );
-	right = RBT_has_even_black_height( node->right, height + this_node );
-
-	return left == right;
+	return left == right ? left + this_node : 0;
 }
 
 int RBT_red_has_black_children(RBT_NODE *node) {
