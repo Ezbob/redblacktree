@@ -4,6 +4,9 @@
 #include <stdbool.h>
 #include <time.h>
 
+#define RBT_IS_RED(node) (node != NULL && node->color == RBT_RED)
+#define RBT_IS_BLACK(node) (node == NULL || node->color == RBT_BLACK)
+
 void RBT_test_insert(void);
 void RBT_test_remove(void);
 void RBT_test_find(void);
@@ -15,33 +18,34 @@ bool RBT_has_all_black_leaves(RBT_NODE *node);
 int RBT_has_even_black_height(RBT_NODE *);
 int RBT_red_has_black_children(RBT_NODE *);
 RBT_TREE *RBT_test_tree_default(void);
+void RBT_test_tree_default_cleanup(RBT_TREE *);
 
 static int default_keys[] = { 10, 12, 20, 34, 6, 3 };
-static long int *default_data[] = { NULL, NULL, NULL, NULL, NULL, NULL };
-static int seed_set = 0;
+static long int *default_values;
 
 RBT_TREE *RBT_test_tree_default() {
 	RBT_TREE *tree = RBT_init_tree();
 
-	if ( !seed_set ) {
-		srand(time(NULL));
-		seed_set = 1;
-	}
-
 	int n = sizeof(default_keys) / sizeof(default_keys[0]); 
+	default_values = malloc(sizeof(long int) * n); 
 
 	for ( int i = 0; i < n; ++i ) {
-		long int data = rand();
-		default_data[i] = &data;
-	}
+		default_values[i] = ((long int) i);
 
-	for ( int i = 0; i < 6; ++i ) {
-		RBT_add(tree, default_keys[i], default_data[i]);
+		//void *data_ptr = malloc(sizeof(long int));
+		//*((long int*) data_ptr) = data;
+
+		RBT_add(tree, default_keys[i], default_values + i );
 	}
 
 	TEST_CHECK( RBT_NODE_COUNT(tree) == 6 );
 
 	return tree;
+}
+
+void RBT_test_tree_default_cleanup(RBT_TREE *tree) {
+	RBT_destroy_tree(tree);
+	free(default_values);
 }
 
 int RBT_is_RB_tree( RBT_TREE *tree ) {
@@ -86,8 +90,6 @@ int RBT_has_even_black_height(RBT_NODE *node) {
 
 	int left, right, this_node;
 
-
-
 	left = RBT_has_even_black_height( node->left);
 	if ( left == 0 ) {
 		return left;
@@ -108,7 +110,8 @@ int RBT_red_has_black_children(RBT_NODE *node) {
 		return 1;
 	}
 
-	int has_black_children = RBT_IS_RED(node) ? RBT_IS_BLACK(node->right) && RBT_IS_BLACK(node->left) : 1;
+	int has_black_children = RBT_IS_RED(node) ? RBT_IS_BLACK(node->right) && 
+		RBT_IS_BLACK(node->left) : 1;
 
 	return has_black_children && RBT_red_has_black_children(node->left) 
 		&& RBT_red_has_black_children(node->left);
@@ -159,21 +162,23 @@ void RBT_test_find() {
 
 	int node_key = 20;
 
-	RBT_NODE *j = RBT_find(tree, node_key); // right subtree
+	long int *j = RBT_find(tree, node_key); // right subtree
 
-	TEST_CHECK( j != NULL && j->key == node_key );
+	TEST_CHECK( j != NULL && *j == 2L );
 
 	node_key = 10;
 
 	j = RBT_find(tree, node_key); // left subtree
 
-	TEST_CHECK( j != NULL && j->key == node_key );
+	TEST_CHECK( j != NULL && *j == 0L );
 
 	node_key = tree->root->key;
 
 	j = RBT_find(tree, node_key); // root
 
-	TEST_CHECK( j != NULL && j->key == node_key );
+	long int *rootdata = tree->root->data;
+
+	TEST_CHECK( j != NULL && *j == *rootdata );
 
 	node_key = 15;
 
@@ -181,32 +186,46 @@ void RBT_test_find() {
 
 	TEST_CHECK( j == NULL );
 
-	RBT_destroy_tree(tree);
+	RBT_test_tree_default_cleanup(tree);
 }
 
 void RBT_test_min_max() {
 	RBT_TREE *tree = RBT_test_tree_default();
 	TEST_CHECK( RBT_is_RB_tree(tree) );
+	int is_null = 1;
+	long int *value;
+	RBT_PAIR *pair = NULL;
 
-	RBT_NODE *min = RBT_get_minimum(tree);
-	TEST_CHECK( min != NULL );
-	TEST_CHECK( min != NULL && min->key == 7 );
+	pair = RBT_get_minimum(tree);
+	is_null = (pair == NULL);
 
-	RBT_NODE *max = RBT_get_maximum(tree);
-	TEST_CHECK( max != NULL );
-	TEST_CHECK( max != NULL && max->key == 30 );
+	TEST_CHECK( !is_null );
+	if ( !is_null ) {
+		TEST_CHECK( RBT_PAIR_KEY(pair) == 3 );
+		value = RBT_PAIR_VALUE(pair);
+		TEST_CHECK( *value == 5L );
+	}
+	RBT_destroy_pair(pair);
 
-	RBT_destroy_tree(tree);
+	pair = RBT_get_maximum(tree);
+	is_null = (pair == NULL);
+
+	TEST_CHECK( !is_null );
+	if ( !is_null ) {
+		TEST_CHECK( RBT_PAIR_KEY(pair) == 34 );
+		value = RBT_PAIR_VALUE(pair);
+		TEST_CHECK( *value == 3L );
+	}
+	RBT_destroy_pair(pair);
+
+	RBT_test_tree_default_cleanup(tree);
 }
 
 void RBT_test_min_max_null() {
 	RBT_TREE *tree = RBT_init_tree();
 
-	RBT_NODE *min = RBT_get_minimum(tree);
-	TEST_CHECK( min == NULL );
-
-	RBT_NODE *max = RBT_get_minimum(tree);
-	TEST_CHECK( max == NULL );
+	TEST_CHECK( RBT_get_minimum(tree) == NULL );
+	TEST_CHECK( RBT_get_maximum(tree) == NULL );
 
 	RBT_destroy_tree(tree);
 }
@@ -218,24 +237,24 @@ void RBT_test_remove() {
 	RBT_PRETTY_PRINT(tree);
 
 	TEST_CHECK( RBT_is_RB_tree(tree) );
+	TEST_CHECK( RBT_NODE_COUNT(tree) == 6 );
+
+	RBT_delete( tree, 6 );
+
+	RBT_PRETTY_PRINT(tree);
+
+	TEST_CHECK( RBT_is_RB_tree(tree) );
 	TEST_CHECK( tree->node_count == 5 );
 
-	RBT_delete( tree, 9 );
+	RBT_delete( tree, 34 );
 
 	RBT_PRETTY_PRINT(tree);
 
 	TEST_CHECK( RBT_is_RB_tree(tree) );
+
 	TEST_CHECK( tree->node_count == 4 );
 
-	RBT_delete( tree, 7 );
-
-	RBT_PRETTY_PRINT(tree);
-
-	TEST_CHECK( RBT_is_RB_tree(tree) );
-
-	TEST_CHECK( tree->node_count == 3 );
-
-	RBT_destroy_tree(tree);
+	RBT_test_tree_default_cleanup(tree);
 }
 
 

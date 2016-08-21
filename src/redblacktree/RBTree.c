@@ -12,6 +12,9 @@
 #define RBT_COLOR_CHAR(node) RBT_IS_RED(node) ? 'r' : 'b' 
 #define RBT_TAB_SIZE 4
 
+#define RBT_IS_RED(node) (node != NULL && node->color == RBT_RED)
+#define RBT_IS_BLACK(node) (node == NULL || node->color == RBT_BLACK)
+
 typedef struct RBT_STACK {
 	size_t size;
 	size_t next_index;
@@ -37,7 +40,25 @@ static void RBT_transplant_tree(RBT_TREE *, RBT_NODE *, RBT_NODE *);
 static RBT_NODE *RBT_minimum(RBT_NODE *);
 static RBT_NODE *RBT_maximum(RBT_NODE *);
 static RBT_NODE *RBT_iterative_find( RBT_NODE *node, int key );
+static RBT_PAIR *RBT_new_pair(int key, void *value);
 
+static RBT_PAIR *RBT_new_pair(int key, void *value) {
+	RBT_PAIR *pair = malloc( sizeof(RBT_PAIR) );
+	if ( pair == NULL ) {
+		RBT_ERROR_STOP( EXIT_FAILURE, "Cannot allocate more memory." );
+		return NULL;
+	}
+
+	pair->key = key;
+	pair->value = value;
+
+	return pair;
+}
+
+void RBT_destroy_pair(RBT_PAIR *pair) {
+	pair->value = NULL;
+	free(pair);
+}
 
 static RBT_NODE *RBT_new_node( int key, void *data ) {
 	RBT_NODE *new_node;
@@ -78,9 +99,8 @@ RBT_TREE *RBT_init_tree() {
 
 static void RBT_recursive_destroy(RBT_NODE *node) {
 
-	if ( node == NULL ) {
-		return;
-	} else {
+	if ( node != NULL ) {
+
 		RBT_recursive_destroy( node->left );		
 		RBT_recursive_destroy( node->right );
 
@@ -343,7 +363,7 @@ static int RBT_remove( RBT_TREE *tree, RBT_NODE *node ) {
 
 	RBT_NODE *point;
 	RBT_NODE *old = node;
-	enum RBT_color old_color = node->color;
+	enum RBT_COLOR old_color = node->color;
 
 	if ( node->left == NULL ) {
 		point = node->right;
@@ -392,14 +412,26 @@ int RBT_delete( RBT_TREE *tree, int key ) {
 	return 0;	
 }
 
-void *RBT_get_maximum(RBT_TREE *tree) {
+RBT_PAIR *RBT_get_maximum(RBT_TREE *tree) {
 	RBT_NODE *node = RBT_maximum(tree->root);
-	return node == NULL ? node : node->data;
+	RBT_PAIR *results = NULL;
+	
+	if ( node != NULL ) {
+		results = RBT_new_pair(node->key, node->data);
+	} 
+
+	return results;
 }
 
-void *RBT_get_minimum(RBT_TREE *tree) {
+RBT_PAIR *RBT_get_minimum(RBT_TREE *tree) {
 	RBT_NODE *node = RBT_minimum(tree->root);
-	return node == NULL ? node : node->data;
+	RBT_PAIR *results = NULL;
+	
+	if ( node != NULL ) {
+		results = RBT_new_pair(node->key, node->data);
+	} 
+
+	return results;
 }
 
 
@@ -447,11 +479,11 @@ static void RBT_pretty_printer_helper(RBT_NODE *node, RBT_STACK *stack) {
 		return;
 	}
 
-	if (node == NULL) {
+	if ( node == NULL ) {
 		printf("(NULL, b)\n");
 		return;
 	} else {
-		printf("(k:%i,c:%c,d:%p)\n", node->key, RBT_COLOR_CHAR(node), node->data);	
+		printf("(k:%i, c:%c, d:%p)\n", node->key, RBT_COLOR_CHAR(node), node->data);	
 	}
 
 	printf( "%s |--", stack->buffer );

@@ -3,12 +3,12 @@
 
 #include <stdlib.h>
 
-enum RBT_color { 
+enum RBT_COLOR { 
 	RBT_BLACK, RBT_RED 
 };
 
 typedef struct RBT_NODE {
-	enum RBT_color color;
+	enum RBT_COLOR color;
 	int key;
 	void *data;
 	struct RBT_NODE *left;
@@ -21,9 +21,16 @@ typedef struct RBT_TREE {
 	size_t node_count;
 } RBT_TREE;
 
+typedef struct RBT_PAIR {
+	int key;
+	void *value;	
+} RBT_PAIR;
+
 RBT_TREE *RBT_init_tree(void);
 
 void RBT_destroy_tree(RBT_TREE *);
+
+void RBT_destroy_pair(RBT_PAIR *);
 
 void *RBT_add(RBT_TREE *, int, void *);
 
@@ -31,15 +38,15 @@ int RBT_delete(RBT_TREE *, int);
 
 void *RBT_find(RBT_TREE *, int);
 
-void *RBT_get_maximum(RBT_TREE *);
+RBT_PAIR *RBT_get_maximum(RBT_TREE *);
 
-void *RBT_get_minimum(RBT_TREE *);
+RBT_PAIR *RBT_get_minimum(RBT_TREE *);
 
 void RBT_pretty_printer(RBT_NODE *);
 
 #define RBT_PRETTY_PRINT(tree) RBT_pretty_printer(tree->root)
-#define RBT_IS_RED(node) (node != NULL && node->color == RBT_RED)
-#define RBT_IS_BLACK(node) (node == NULL || node->color == RBT_BLACK)
 #define RBT_NODE_COUNT(tree) ( tree->node_count )
+#define RBT_PAIR_KEY(pair) ( pair->key )
+#define RBT_PAIR_VALUE(pair) ( pair->value )
 
 #endif
