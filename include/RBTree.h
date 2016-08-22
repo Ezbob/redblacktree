@@ -1,5 +1,17 @@
-#ifndef RB_TREE_
-#define RB_TREE_
+/**
+ * Red-black tree
+ * This is a red-black tree based on the description from the Cormen
+ * textbook. 
+ *
+ * Unlike Cormens version, this version uses NULL pointers to mark
+ * end nodes instead of keeping a allocated nill node that is black
+ * but can take on any value.
+ *
+ * Implemented by Anders Busch (2016)
+ *
+ **/
+#ifndef RB_TREE_H
+#define RB_TREE_H
 
 #include <stdlib.h>
 

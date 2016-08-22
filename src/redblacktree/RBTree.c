@@ -1,3 +1,10 @@
+/**
+ * Red-black tree
+ *
+ * Based on the design from Cormen et. al.
+ *
+ * Implemented by Anders Busch (2016)
+ **/
 #include "RBTree.h"
 #include <stdlib.h>
 #include <stdio.h>
