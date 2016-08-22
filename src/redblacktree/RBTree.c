@@ -11,7 +11,7 @@
 #include <assert.h>
 
 #define RBT_ERROR(message) fprintf(stderr, "Error: %s\n", message)
-#define RBT_ERROR_STOP(code, message) fprintf(stderr, "Error: %s\n", message); exit(code)
+#define RBT_ERROR_STOP(code, message)  do { fprintf(stderr, "Error: %s\n", message); exit(code); } while ( 0 )
 
 // NULL values are black per difinition, so node has  
 // to be non-NULL for it to be RBT_RED
