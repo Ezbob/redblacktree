@@ -36,15 +36,10 @@ void RBT_test_tree_default_cleanup(RBT_TREE *tree) {
     free(default_values);
 }
 
-int RBT_is_RB_tree( RBT_TREE *tree ) {
+void RBT_test_is_RB_tree( RBT_TREE *tree ) {
 
-    int is_RB;
-    int current = ( tree->root->color == RBT_BLACK );
+    TEST_CHECK_( tree->root->color == RBT_BLACK, "RB properties: root is not black" );
 
-    is_RB = current;
-    if ( !current ) {
-        fprintf(stderr,"Error: Root is not black\n");
-    } 
 /*
     // every leaf is NULL which is defined to be black 
     current = RBT_has_all_black_leaves( tree->root );
@@ -54,21 +49,9 @@ int RBT_is_RB_tree( RBT_TREE *tree ) {
         fprintf(stderr, "Error: Not all leaves are black\n");
     }
 */
-    current = RBT_has_even_black_height(tree->root);
-    is_RB = is_RB && current;
+    TEST_CHECK_( RBT_has_even_black_height(tree->root), "RB properties: every path from root does not have equal black height" );
 
-    if ( !current ) {
-        fprintf(stderr, "Error: Tree does not have even black height\n");
-    }
-
-    current = RBT_red_has_black_children(tree->root);
-    is_RB = is_RB && current;
-
-    if ( !current ) {
-        fprintf(stderr, "Error: Not all red nodes has black children\n");
-    }
-
-    return is_RB;
+    TEST_CHECK_( RBT_red_has_black_children(tree->root), "RB properties: every red node does not have only black children" );
 }
 
 int RBT_has_even_black_height(RBT_NODE *node) {
@@ -113,31 +96,31 @@ void RBT_test_insert() {
     RBT_add(tree, 10, NULL);
     RBT_pretty_printer(tree->root);
 
-    TEST_CHECK( RBT_is_RB_tree(tree) );
+    RBT_test_is_RB_tree(tree);
 
     RBT_add(tree, 12, NULL);
     
     RBT_pretty_printer(tree->root);
 
-    TEST_CHECK( RBT_is_RB_tree(tree) );
+    RBT_test_is_RB_tree(tree);
 
     RBT_add(tree, 20, NULL);
 
     RBT_pretty_printer(tree->root);
 
-    TEST_CHECK( RBT_is_RB_tree(tree) );
+    RBT_test_is_RB_tree(tree);
 
     RBT_add(tree, 9, NULL);
 
     RBT_pretty_printer(tree->root);
 
-    TEST_CHECK( RBT_is_RB_tree(tree) );
+    RBT_test_is_RB_tree(tree);
 
     RBT_add(tree, 7, NULL);
 
     RBT_pretty_printer(tree->root);
 
-    TEST_CHECK( RBT_is_RB_tree(tree) );
+    RBT_test_is_RB_tree(tree);
     TEST_CHECK( tree->node_count == 5 );
 
     RBT_destroy_tree(tree);
@@ -146,7 +129,7 @@ void RBT_test_insert() {
 void RBT_test_find() {
     RBT_TREE *tree = RBT_test_tree_default();
 
-    TEST_CHECK( RBT_is_RB_tree(tree) );
+    RBT_test_is_RB_tree(tree);
 
     int node_key = 20;
 
@@ -179,8 +162,9 @@ void RBT_test_find() {
 
 void RBT_test_min_max() {
     RBT_TREE *tree = RBT_test_tree_default();
-    TEST_CHECK( RBT_is_RB_tree(tree) );
-    int is_null = 1;
+    
+    RBT_test_is_RB_tree(tree);
+
     long int *value;
     RBT_PAIR *pair = NULL;
 
@@ -220,21 +204,21 @@ void RBT_test_remove() {
 
     RBT_PRETTY_PRINT(tree);
 
-    TEST_CHECK( RBT_is_RB_tree(tree) );
+    RBT_test_is_RB_tree(tree);
     TEST_CHECK( RBT_NODE_COUNT(tree) == 6 );
 
     RBT_delete( tree, 6 );
 
     RBT_PRETTY_PRINT(tree);
 
-    TEST_CHECK( RBT_is_RB_tree(tree) );
+    RBT_test_is_RB_tree(tree);
     TEST_CHECK( tree->node_count == 5 );
 
     RBT_delete( tree, 34 );
 
     RBT_PRETTY_PRINT(tree);
 
-    TEST_CHECK( RBT_is_RB_tree(tree) );
+    RBT_test_is_RB_tree(tree);
 
     TEST_CHECK( tree->node_count == 4 );
 

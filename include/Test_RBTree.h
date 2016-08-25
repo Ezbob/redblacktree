@@ -41,7 +41,7 @@ void RBT_test_push_stack(void);
 void RBT_test_creation_deletion_stack_fail(void);
 void RBT_test_push_stack_fail(void);
 
-int RBT_is_RB_tree( RBT_TREE * );
+void RBT_test_is_RB_tree( RBT_TREE * );
 int RBT_has_all_black_leaves( RBT_NODE * );
 int RBT_has_even_black_height( RBT_NODE * );
 int RBT_red_has_black_children( RBT_NODE * );
