@@ -22,6 +22,7 @@
 #define RBT_IS_RED(node) (node != NULL && node->color == RBT_RED)
 #define RBT_IS_BLACK(node) (node == NULL || node->color == RBT_BLACK)
 
+// Linear bounded stack for printing purposes
 typedef struct RBT_STACK {
     size_t size;
     size_t next_index;
@@ -458,17 +459,19 @@ static void RBT_destroy_stack( RBT_STACK * stack ) {
 }
 
 static void RBT_pretty_push( RBT_STACK * stack, char character ) {
-    assert(stack->next_index <= stack->size - 5);
-
-    stack->buffer[ stack->next_index++ ] = ' ';
-    stack->buffer[ stack->next_index++ ] = character;
-    stack->buffer[ stack->next_index++ ] = ' ';
-    stack->buffer[ stack->next_index++ ] = ' ';
-    stack->buffer[ stack->next_index ] = '\0';
+    if ( stack->size > 0 && stack->next_index <= stack->size - 5 ) {
+    	stack->buffer[ stack->next_index++ ] = ' ';
+	    stack->buffer[ stack->next_index++ ] = character;
+    	stack->buffer[ stack->next_index++ ] = ' ';
+    	stack->buffer[ stack->next_index++ ] = ' ';
+    	stack->buffer[ stack->next_index ] = '\0';
+    }
 }
 
 static void RBT_pretty_pop( RBT_STACK * stack ) {
-    stack->buffer[ stack->next_index -= 4 ] = '\0';
+	if ( stack->size > 0 && stack->next_index > 0 ) {
+    	stack->buffer[ stack->next_index -= 4 ] = '\0';
+	}
 }
 
 void RBT_pretty_printer(RBT_NODE *from_node) {
