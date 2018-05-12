@@ -30,12 +30,12 @@ typedef struct RBT_STACK {
 } RBT_STACK;
 
 RBT_NODE *RBT_new_node( int, void *data );
-void RBT_destroy_node(RBT_NODE *);
+void RBT_destroy_node(RBT_NODE *, void (*f)(void *));
 void RBT_left_rotate(RBT_TREE *, RBT_NODE *);
 void RBT_right_rotate(RBT_TREE *, RBT_NODE *);
 void RBT_insert_fixup(RBT_TREE *, RBT_NODE *);
 RBT_NODE *RBT_insert(RBT_TREE *, RBT_NODE *);
-void RBT_recursive_destroy(RBT_NODE *);
+void RBT_recursive_destroy(RBT_NODE *, void (*f)(void *));
 RBT_STACK *RBT_new_stack( size_t size );
 void RBT_destroy_stack( RBT_STACK * stack );
 void RBT_pretty_printer_helper(RBT_NODE *node, RBT_STACK *);
@@ -47,10 +47,10 @@ void RBT_remove_fixup(RBT_TREE *, RBT_NODE *);
 void RBT_transplant_tree(RBT_TREE *, RBT_NODE *, RBT_NODE *);
 RBT_NODE *RBT_minimum(RBT_NODE *);
 RBT_NODE *RBT_maximum(RBT_NODE *);
-RBT_NODE *RBT_iterative_find( RBT_NODE *node, int key );
-RBT_PAIR *RBT_new_pair(int key, void *value);
+RBT_NODE *RBT_iterative_find( RBT_NODE *node, size_t key );
+RBT_PAIR *RBT_new_pair(size_t key, void *value);
 
-RBT_PAIR *RBT_new_pair(int key, void *value) {
+RBT_PAIR *RBT_new_pair(size_t key, void *value) {
     RBT_PAIR *pair = malloc( sizeof(RBT_PAIR) );
     if ( pair == NULL ) {
         RBT_ERROR_STOP( EXIT_FAILURE, "Cannot allocate more memory." );
@@ -84,9 +84,9 @@ RBT_NODE *RBT_new_node( int key, void *data ) {
     return new_node;
 }
 
-void RBT_destroy_node( RBT_NODE *node ) {
+void RBT_destroy_node( RBT_NODE *node, void (*freedata)(void *) ) {
     if ( node != NULL ) {
-        node->data = NULL;
+        freedata(node->data);
         node->left = NULL;
         node->right = NULL;
         node->parent = NULL;
@@ -105,19 +105,18 @@ RBT_TREE *RBT_init_tree() {
     return new_tree;
 }
 
-void RBT_recursive_destroy(RBT_NODE *node) {
+void RBT_recursive_destroy(RBT_NODE *node, void (*freedata)(void *)) {
 
     if ( node != NULL ) {
+        RBT_recursive_destroy( node->left, freedata );
+        RBT_recursive_destroy( node->right, freedata );
 
-        RBT_recursive_destroy( node->left );        
-        RBT_recursive_destroy( node->right );
-
-        RBT_destroy_node( node );
+        RBT_destroy_node( node, freedata );
     }
 }
 
-void RBT_destroy_tree( RBT_TREE *tree ) {
-    RBT_recursive_destroy( tree->root );
+void RBT_destroy_tree( RBT_TREE *tree, void (*freedata)(void *) ) {
+    RBT_recursive_destroy( tree->root, freedata);
     free( tree );
 }
 
@@ -245,7 +244,7 @@ RBT_NODE *RBT_insert( RBT_TREE *tree, RBT_NODE *node ) {
     return node;
 }
 
-void *RBT_add( RBT_TREE *tree, int key, void *data ) {
+void *RBT_add( RBT_TREE *tree, size_t key, void *data ) {
     tree->node_count++;
     RBT_NODE *inserted = RBT_insert( tree, RBT_new_node( key, data ) );
     return inserted == NULL ? inserted : inserted->data;
@@ -342,7 +341,7 @@ void RBT_remove_fixup( RBT_TREE *tree, RBT_NODE *node ) {
     node->color = RBT_BLACK;
 }
 
-RBT_NODE *RBT_iterative_find( RBT_NODE *node, int key ) {
+RBT_NODE *RBT_iterative_find( RBT_NODE *node, size_t key ) {
     RBT_NODE *iterator = node;
 
     while ( iterator != NULL && iterator->key != key ) {
@@ -355,7 +354,7 @@ RBT_NODE *RBT_iterative_find( RBT_NODE *node, int key ) {
     return iterator;
 }
 
-void *RBT_find( RBT_TREE *tree, int key ) {
+void *RBT_find( RBT_TREE *tree, size_t key ) {
 
     if ( tree == NULL ) {
         return NULL;
@@ -411,7 +410,7 @@ int RBT_remove( RBT_TREE *tree, RBT_NODE *node ) {
     return 1;
 }
 
-int RBT_delete( RBT_TREE *tree, int key ) {
+int RBT_delete( RBT_TREE *tree, size_t key ) {
     RBT_NODE *find_node = RBT_iterative_find( tree->root, key );
 
     if ( find_node != NULL ) {
@@ -503,7 +502,7 @@ void RBT_pretty_printer_helper( RBT_NODE *node, RBT_STACK *stack ) {
         printf("(NULL, b)\n");
         return;
     } else {
-        printf("(k:%i, c:%c, d:%p)\n", node->key, RBT_COLOR_CHAR(node), node->data);    
+        printf("(k:%lu, c:%c, d:%p)\n", node->key, RBT_COLOR_CHAR(node), node->data);
     }
 
     printf( "%s |--", stack->buffer );

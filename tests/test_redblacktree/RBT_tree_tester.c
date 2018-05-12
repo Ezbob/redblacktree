@@ -9,6 +9,9 @@
 static int default_keys[] = { 10, 12, 20, 34, 6, 3 };
 static long int *default_values;
 
+void nofree(void *);
+void nofree(void *item) { ((void) item); }
+
 RBT_TREE *RBT_test_tree_default() {
     RBT_TREE *tree = RBT_init_tree();
 
@@ -27,7 +30,7 @@ RBT_TREE *RBT_test_tree_default() {
 }
 
 void RBT_test_tree_default_cleanup(RBT_TREE *tree) {
-    RBT_destroy_tree(tree);
+    RBT_destroy_tree(tree, nofree);
     free(default_values);
 }
 
@@ -109,7 +112,7 @@ void RBT_test_insert() {
     RBT_test_is_RB_tree(tree);
     TEST_CHECK( tree->node_count == 5 );
 
-    RBT_destroy_tree(tree);
+    RBT_destroy_tree(tree, nofree);
 }
 
 void RBT_test_find() {
@@ -181,7 +184,7 @@ void RBT_test_min_max_null() {
     TEST_CHECK( RBT_get_minimum(tree) == NULL );
     TEST_CHECK( RBT_get_maximum(tree) == NULL );
 
-    RBT_destroy_tree(tree);
+    RBT_destroy_tree(tree, nofree);
 }
 
 void RBT_test_remove() {

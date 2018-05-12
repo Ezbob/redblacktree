@@ -21,7 +21,7 @@ enum RBT_COLOR {
 
 typedef struct RBT_NODE {
 	enum RBT_COLOR color;
-	int key;
+	size_t key;
 	void *data;
 	struct RBT_NODE *left;
 	struct RBT_NODE *right;
@@ -34,21 +34,22 @@ typedef struct RBT_TREE {
 } RBT_TREE;
 
 typedef struct RBT_PAIR {
-	int key;
+	size_t key;
 	void *value;	
 } RBT_PAIR;
 
+
 RBT_TREE *RBT_init_tree(void);
 
-void RBT_destroy_tree(RBT_TREE *);
+void RBT_destroy_tree(RBT_TREE *, void (*freedata)(void *));
 
 void RBT_destroy_pair(RBT_PAIR *);
 
-void *RBT_add(RBT_TREE *, int, void *);
+void *RBT_add(RBT_TREE *, size_t, void *);
 
-int RBT_delete(RBT_TREE *, int);
+int RBT_delete(RBT_TREE *, size_t);
 
-void *RBT_find(RBT_TREE *, int);
+void *RBT_find(RBT_TREE *, size_t);
 
 RBT_PAIR *RBT_get_maximum(RBT_TREE *);
 
