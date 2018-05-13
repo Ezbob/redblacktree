@@ -19,43 +19,42 @@ enum RBT_COLOR {
 	RBT_BLACK, RBT_RED 
 };
 
-typedef struct RBT_NODE {
+struct RBT_NODE {
 	enum RBT_COLOR color;
 	size_t key;
 	void *data;
 	struct RBT_NODE *left;
 	struct RBT_NODE *right;
 	struct RBT_NODE *parent;
-} RBT_NODE;
+};
 
-typedef struct RBT_TREE {
+struct RBT_TREE {
 	struct RBT_NODE *root;
 	size_t node_count;
-} RBT_TREE;
+};
 
-typedef struct RBT_PAIR {
+struct RBT_PAIR {
 	size_t key;
 	void *value;	
-} RBT_PAIR;
+};
 
+struct RBT_TREE *RBT_init_tree(void);
 
-RBT_TREE *RBT_init_tree(void);
+void RBT_destroy_tree(struct RBT_TREE *, void (*freedata)(void *));
 
-void RBT_destroy_tree(RBT_TREE *, void (*freedata)(void *));
+void RBT_destroy_pair(struct RBT_PAIR *);
 
-void RBT_destroy_pair(RBT_PAIR *);
+void *RBT_add(struct RBT_TREE *, size_t, void *);
 
-void *RBT_add(RBT_TREE *, size_t, void *);
+int RBT_delete(struct RBT_TREE *, size_t);
 
-int RBT_delete(RBT_TREE *, size_t);
+void *RBT_find(struct RBT_TREE *, size_t);
 
-void *RBT_find(RBT_TREE *, size_t);
+struct RBT_PAIR *RBT_get_maximum(struct RBT_TREE *);
 
-RBT_PAIR *RBT_get_maximum(RBT_TREE *);
+struct RBT_PAIR *RBT_get_minimum(struct RBT_TREE *);
 
-RBT_PAIR *RBT_get_minimum(RBT_TREE *);
-
-void RBT_pretty_printer(RBT_NODE *);
+void RBT_pretty_printer(struct RBT_NODE *);
 
 #define RBT_PRETTY_PRINT(tree) RBT_pretty_printer(tree->root)
 #define RBT_NODE_COUNT(tree) ( tree->node_count )

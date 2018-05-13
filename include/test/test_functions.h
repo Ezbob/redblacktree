@@ -5,45 +5,43 @@
 
 // private stuff within RBTree.h
 
-typedef struct RBT_STACK {
+struct RBT_STACK {
     size_t size;
     size_t next_index;
     char *buffer; 
-} RBT_STACK;
+};
 
-RBT_STACK *RBT_new_stack( size_t );
-void RBT_destroy_stack( RBT_STACK *);
-
-void RBT_pretty_push( RBT_STACK *, char );
-void RBT_pretty_pop( RBT_STACK * );
-void RBT_pretty_printer_helper( RBT_NODE *, RBT_STACK * );
-RBT_NODE *RBT_new_node( int, void * );
-void RBT_destroy_node( RBT_NODE * );
-void RBT_left_rotate( RBT_TREE *, RBT_NODE * );
-void RBT_right_rotate( RBT_TREE *, RBT_NODE * );
-void RBT_insert_fixup( RBT_TREE *, RBT_NODE * );
-RBT_NODE *RBT_insert( RBT_TREE *, RBT_NODE * );
-void RBT_recursive_destroy( RBT_NODE * );
-
-RBT_NODE *RBT_find_parent( RBT_TREE *, RBT_NODE * );
-int RBT_remove( RBT_TREE *, RBT_NODE * );
-void RBT_remove_fixup( RBT_TREE *, RBT_NODE * );
-void RBT_transplant_tree( RBT_TREE *, RBT_NODE *, RBT_NODE * );
-RBT_NODE *RBT_minimum( RBT_NODE * );
-RBT_NODE *RBT_maximum( RBT_NODE * );
-RBT_NODE *RBT_iterative_find( RBT_NODE *, int );
-RBT_PAIR *RBT_new_pair( int , void * );
+struct RBT_NODE *RBT_new_node( int, void *data );
+void RBT_destroy_node(struct RBT_NODE *, void (*f)(void *));
+void RBT_left_rotate(struct RBT_TREE *, struct RBT_NODE *);
+void RBT_right_rotate(struct RBT_TREE *, struct RBT_NODE *);
+void RBT_insert_fixup(struct RBT_TREE *, struct RBT_NODE *);
+struct RBT_NODE *RBT_insert(struct RBT_TREE *, struct RBT_NODE *);
+void RBT_recursive_destroy(struct RBT_NODE *, void (*f)(void *));
+struct RBT_STACK *RBT_new_stack( size_t size );
+void RBT_destroy_stack(struct RBT_STACK * stack);
+void RBT_pretty_printer_helper(struct RBT_NODE *node, struct RBT_STACK *);
+void RBT_pretty_push(struct RBT_STACK * stack, char character);
+void RBT_pretty_pop(struct RBT_STACK * stack );
+struct RBT_NODE *RBT_find_parent(struct RBT_TREE *, struct RBT_NODE *);
+int RBT_remove(struct RBT_TREE *, struct RBT_NODE *);
+void RBT_remove_fixup(struct RBT_TREE *, struct RBT_NODE *);
+void RBT_transplant_tree(struct RBT_TREE *, struct RBT_NODE *, struct RBT_NODE *);
+struct RBT_NODE *RBT_minimum(struct RBT_NODE *);
+struct RBT_NODE *RBT_maximum(struct RBT_NODE *);
+struct RBT_NODE *RBT_iterative_find(struct RBT_NODE *node, size_t key );
+struct RBT_PAIR *RBT_new_pair(size_t key, void *value);
 
 // end of private stuff
 
 // test functions
 
-void RBT_test_is_RB_tree( RBT_TREE * );
-int RBT_has_all_black_leaves( RBT_NODE * );
-int RBT_has_even_black_height( RBT_NODE * );
-int RBT_red_has_black_children( RBT_NODE * );
-RBT_TREE *RBT_test_tree_default( void );
-void RBT_test_tree_default_cleanup( RBT_TREE * );
+void RBT_test_is_RB_tree( struct RBT_TREE * );
+int RBT_has_all_black_leaves( struct RBT_NODE * );
+int RBT_has_even_black_height( struct RBT_NODE * );
+int RBT_red_has_black_children( struct RBT_NODE * );
+struct RBT_TREE *RBT_test_tree_default( void );
+void RBT_test_tree_default_cleanup( struct RBT_TREE * );
 
 void RBT_test_insert( void );
 void RBT_test_remove( void );

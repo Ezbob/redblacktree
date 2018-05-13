@@ -12,8 +12,8 @@ static long int *default_values;
 void nofree(void *);
 void nofree(void *item) { ((void) item); }
 
-RBT_TREE *RBT_test_tree_default() {
-    RBT_TREE *tree = RBT_init_tree();
+struct RBT_TREE *RBT_test_tree_default() {
+    struct RBT_TREE *tree = RBT_init_tree();
 
     int n = sizeof(default_keys) / sizeof(default_keys[0]); 
     default_values = malloc(sizeof(long int) * n); 
@@ -29,12 +29,12 @@ RBT_TREE *RBT_test_tree_default() {
     return tree;
 }
 
-void RBT_test_tree_default_cleanup(RBT_TREE *tree) {
+void RBT_test_tree_default_cleanup(struct RBT_TREE *tree) {
     RBT_destroy_tree(tree, nofree);
     free(default_values);
 }
 
-void RBT_test_is_RB_tree( RBT_TREE *tree ) {
+void RBT_test_is_RB_tree(struct RBT_TREE *tree) {
 
     TEST_CHECK_( tree->root->color == RBT_BLACK, "RB properties: root is not black" );
 
@@ -43,7 +43,7 @@ void RBT_test_is_RB_tree( RBT_TREE *tree ) {
     TEST_CHECK_( RBT_red_has_black_children(tree->root), "RB properties: every red node does not have only black children" );
 }
 
-int RBT_has_even_black_height(RBT_NODE *node) {
+int RBT_has_even_black_height(struct RBT_NODE *node) {
     if ( node == NULL ) {
         return 1;
     }
@@ -64,7 +64,7 @@ int RBT_has_even_black_height(RBT_NODE *node) {
     return left == right ? left + this_node : 0;
 }
 
-int RBT_red_has_black_children(RBT_NODE *node) {
+int RBT_red_has_black_children(struct RBT_NODE *node) {
 
     if ( node == NULL ) {
         return 1;
@@ -79,7 +79,7 @@ int RBT_red_has_black_children(RBT_NODE *node) {
 
 
 void RBT_test_insert() {
-    RBT_TREE *tree = RBT_init_tree();
+    struct RBT_TREE *tree = RBT_init_tree();
     printf("\n");
 
     RBT_add(tree, 10, NULL);
@@ -116,7 +116,7 @@ void RBT_test_insert() {
 }
 
 void RBT_test_find() {
-    RBT_TREE *tree = RBT_test_tree_default();
+    struct RBT_TREE *tree = RBT_test_tree_default();
 
     RBT_test_is_RB_tree(tree);
 
@@ -150,12 +150,12 @@ void RBT_test_find() {
 }
 
 void RBT_test_min_max() {
-    RBT_TREE *tree = RBT_test_tree_default();
+    struct RBT_TREE *tree = RBT_test_tree_default();
     
     RBT_test_is_RB_tree(tree);
 
     long int *value;
-    RBT_PAIR *pair = NULL;
+    struct RBT_PAIR *pair = NULL;
 
     pair = RBT_get_minimum(tree);
 
@@ -179,7 +179,7 @@ void RBT_test_min_max() {
 }
 
 void RBT_test_min_max_null() {
-    RBT_TREE *tree = RBT_init_tree();
+    struct RBT_TREE *tree = RBT_init_tree();
 
     TEST_CHECK( RBT_get_minimum(tree) == NULL );
     TEST_CHECK( RBT_get_maximum(tree) == NULL );
@@ -188,7 +188,7 @@ void RBT_test_min_max_null() {
 }
 
 void RBT_test_remove() {
-    RBT_TREE *tree = RBT_test_tree_default();
+    struct RBT_TREE *tree = RBT_test_tree_default();
     printf("\n");
 
     RBT_PRETTY_PRINT(tree);
