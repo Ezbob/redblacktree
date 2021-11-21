@@ -1,14 +1,14 @@
 #ifndef STACK_TEST_H
 #define STACK_TEST_H
 
-#include "RBTree.h"
+#include "RBTree/RBTree.h"
 
 // private stuff within RBTree.h
 
 struct RBT_STACK {
     size_t size;
     size_t next_index;
-    char *buffer; 
+    char *buffer;
 };
 
 struct RBT_NODE *RBT_new_node( int, void *data );

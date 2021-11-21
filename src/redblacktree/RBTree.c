@@ -5,7 +5,7 @@
  *
  * Implemented by Anders Busch (2016)
  **/
-#include "RBTree.h"
+#include "RBTree/RBTree.h"
 #include <stdlib.h>
 #include <stdio.h>
 #include <assert.h>
@@ -13,10 +13,10 @@
 #define RBT_ERROR(message) fprintf(stderr, "Error: %s\n", message)
 #define RBT_ERROR_STOP(code, message)  do { fprintf(stderr, "Error: %s\n", message); exit(code); } while ( 0 )
 
-// NULL values are black per difinition, so node has  
+// NULL values are black per difinition, so node has
 // to be non-NULL for it to be RBT_RED
 
-#define RBT_COLOR_CHAR(node) RBT_IS_RED(node) ? 'r' : 'b' 
+#define RBT_COLOR_CHAR(node) RBT_IS_RED(node) ? 'r' : 'b'
 #define RBT_TAB_SIZE 4
 
 #define RBT_IS_RED(node) (node != NULL && node->color == RBT_RED)
@@ -26,7 +26,7 @@
 struct RBT_STACK {
     size_t size;
     size_t next_index;
-    char *buffer; 
+    char *buffer;
 };
 
 struct RBT_NODE *RBT_new_node( int, void *data );
@@ -90,7 +90,7 @@ void RBT_destroy_node(struct RBT_NODE *node, void (*freedata)(void *)) {
         node->left = NULL;
         node->right = NULL;
         node->parent = NULL;
-        free(node); 
+        free(node);
     }
 }
 
@@ -146,12 +146,12 @@ void RBT_right_rotate(struct RBT_TREE *tree, struct RBT_NODE *node) {
     if ( node->left != NULL ) {
         struct RBT_NODE *left_node = node->left;
         node->left = left_node->right;
-        
+
         if ( left_node->right != NULL ) {
             left_node->right->parent = node;
         }
         left_node->parent = node->parent;
-    
+
         if ( node->parent == NULL ) {
             tree->root = left_node;
         } else if ( node == node->parent->left ){
@@ -167,7 +167,7 @@ void RBT_right_rotate(struct RBT_TREE *tree, struct RBT_NODE *node) {
 void RBT_insert_fixup(struct RBT_TREE *tree, struct RBT_NODE *node ) {
     if ( tree == NULL || node == NULL ) {
         return;
-    } 
+    }
     while ( RBT_IS_RED( node->parent ) ) {
         if ( node->parent == node->parent->parent->left ) {
             struct RBT_NODE *right_node = node->parent->parent->right;
@@ -210,10 +210,10 @@ void RBT_insert_fixup(struct RBT_TREE *tree, struct RBT_NODE *node ) {
 struct RBT_NODE *RBT_find_parent(struct RBT_TREE *tree, struct RBT_NODE *node) {
     struct RBT_NODE *parent = NULL;
     struct RBT_NODE *iterator = tree->root;
-    
+
     while ( iterator != NULL ) { // traversal of the tree finding parent of node
         parent = iterator;
-        
+
         if ( node->key < iterator->key ) {
             iterator = iterator->left;
         } else {
@@ -224,7 +224,7 @@ struct RBT_NODE *RBT_find_parent(struct RBT_TREE *tree, struct RBT_NODE *node) {
 }
 
 struct RBT_NODE *RBT_insert(struct RBT_TREE *tree, struct RBT_NODE *node) {
-    
+
     struct RBT_NODE *parent = RBT_find_parent(tree, node);
 
     node->parent = parent; // setting parent node and fixing forward pointers
@@ -236,7 +236,7 @@ struct RBT_NODE *RBT_insert(struct RBT_TREE *tree, struct RBT_NODE *node) {
     } else {
         parent->right = node;
     }
-    
+
     node->left = NULL;
     node->right = NULL;
     node->color = RBT_RED;
@@ -286,8 +286,8 @@ void RBT_transplant_tree(struct RBT_TREE *tree, struct RBT_NODE *old, struct RBT
         old->parent->right = transplant;
     }
     if ( transplant != NULL ) {
-        transplant->parent = old->parent;   
-    } 
+        transplant->parent = old->parent;
+    }
 }
 
 void RBT_remove_fixup(struct RBT_TREE *tree, struct RBT_NODE *node) {
@@ -374,13 +374,13 @@ int RBT_remove(struct RBT_TREE *tree, struct RBT_NODE *node ) {
 
     if ( node->left == NULL ) {
         point = node->right;
-        RBT_transplant_tree(tree, node, node->right);       
+        RBT_transplant_tree(tree, node, node->right);
     } else if ( node->right == NULL ) {
         point = node->left;
         RBT_transplant_tree(tree, node, node->left);
     } else if ( node->right == NULL && node->left == NULL ) {
         // this step is needed since the book uses the T.nill difinition
-        // which is always black and is a allocated object (in contrast to our NULL) 
+        // which is always black and is a allocated object (in contrast to our NULL)
         RBT_transplant_tree(tree, node, NULL);
     } else {
         old = RBT_minimum( node->right );
@@ -389,7 +389,7 @@ int RBT_remove(struct RBT_TREE *tree, struct RBT_NODE *node ) {
 
         if ( old->parent == node ) {
             if ( point != NULL ) {
-                point->parent = old;    
+                point->parent = old;
             }
         } else {
             RBT_transplant_tree(tree, old, old->right);
@@ -414,18 +414,18 @@ int RBT_delete(struct RBT_TREE *tree, size_t key) {
     struct RBT_NODE *find_node = RBT_iterative_find( tree->root, key );
 
     if ( find_node != NULL ) {
-        return RBT_remove( tree, find_node );   
-    } 
-    return 0;   
+        return RBT_remove( tree, find_node );
+    }
+    return 0;
 }
 
 struct RBT_PAIR *RBT_get_maximum(struct RBT_TREE *tree) {
     struct RBT_NODE *node = RBT_maximum(tree->root);
     struct RBT_PAIR *results = NULL;
-    
+
     if ( node != NULL ) {
         results = RBT_new_pair(node->key, node->data);
-    } 
+    }
 
     return results;
 }
@@ -433,10 +433,10 @@ struct RBT_PAIR *RBT_get_maximum(struct RBT_TREE *tree) {
 struct RBT_PAIR *RBT_get_minimum(struct RBT_TREE *tree) {
     struct RBT_NODE *node = RBT_minimum(tree->root);
     struct RBT_PAIR *results = NULL;
-    
+
     if ( node != NULL ) {
         results = RBT_new_pair(node->key, node->data);
-    } 
+    }
 
     return results;
 }
@@ -453,7 +453,7 @@ struct RBT_STACK *RBT_new_stack( size_t size ) {
         return NULL;
     }
     new_stack->buffer = calloc( sizeof(char), size );
-    
+
     new_stack->size = size;
     new_stack->next_index = 0;
 
@@ -463,8 +463,8 @@ struct RBT_STACK *RBT_new_stack( size_t size ) {
 void RBT_destroy_stack( struct RBT_STACK * stack ) {
     if ( stack != NULL ) {
         free(stack->buffer);
-        free(stack);  
-    } 
+        free(stack);
+    }
 }
 
 void RBT_pretty_push( struct RBT_STACK * stack, char character ) {
@@ -502,7 +502,7 @@ void RBT_pretty_printer_helper( struct RBT_NODE *node, struct RBT_STACK *stack )
         printf("(NULL, b)\n");
         return;
     } else {
-        printf("(k:%lu, c:%c, d:%p)\n", node->key, RBT_COLOR_CHAR(node), node->data);
+        printf("(k:%zu, c:%c, d:%p)\n", node->key, RBT_COLOR_CHAR(node), node->data);
     }
 
     printf( "%s |--", stack->buffer );
@@ -513,6 +513,6 @@ void RBT_pretty_printer_helper( struct RBT_NODE *node, struct RBT_STACK *stack )
     printf( "%s `--", stack->buffer );
     RBT_pretty_push(stack, ' ');
     RBT_pretty_printer_helper(node->right, stack);
-    RBT_pretty_pop(stack);    
+    RBT_pretty_pop(stack);
 }
 
