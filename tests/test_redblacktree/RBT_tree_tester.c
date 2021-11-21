@@ -1,7 +1,7 @@
 #include <stdlib.h>
 #include <stdio.h>
-#include "test/pub_cutest.h"
-#include "test/test_functions.h"
+#include "RBTree/test/pub_cutest.h"
+#include "RBTree/test/test_functions.h"
 
 #define RBT_IS_RED(node) (node != NULL && node->color == RBT_RED)
 #define RBT_IS_BLACK(node) (node == NULL || node->color == RBT_BLACK)

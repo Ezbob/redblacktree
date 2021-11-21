@@ -5,7 +5,7 @@
  *
  * Implemented by Anders Busch (2016)
  **/
-#include "RBTree.h"
+#include "RBTree/RBTree.h"
 #include <stdlib.h>
 #include <stdio.h>
 #include <assert.h>
@@ -502,7 +502,7 @@ void RBT_pretty_printer_helper( struct RBT_NODE *node, struct RBT_STACK *stack )
         printf("(NULL, b)\n");
         return;
     } else {
-        printf("(k:%lu, c:%c, d:%p)\n", node->key, RBT_COLOR_CHAR(node), node->data);
+        printf("(k:%zu, c:%c, d:%p)\n", node->key, RBT_COLOR_CHAR(node), node->data);
     }
 
     printf( "%s |--", stack->buffer );

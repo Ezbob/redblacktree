@@ -35,7 +35,7 @@ struct RBT_TREE {
 
 struct RBT_PAIR {
 	size_t key;
-	void *value;	
+	void *value;
 };
 
 struct RBT_TREE *RBT_init_tree(void);
