@@ -1,7 +1,7 @@
 /**
  * Red-black tree
  * This is a red-black tree based on the description from the Cormen
- * textbook. 
+ * textbook.
  *
  * Unlike Cormens version, this version uses NULL pointers to mark
  * end nodes instead of keeping a allocated nill node that is black
@@ -15,8 +15,8 @@
 
 #include <stdlib.h>
 
-enum RBT_COLOR { 
-	RBT_BLACK, RBT_RED 
+enum RBT_COLOR {
+	RBT_BLACK, RBT_RED
 };
 
 struct RBT_NODE {

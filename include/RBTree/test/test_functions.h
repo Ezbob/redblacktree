@@ -8,7 +8,7 @@
 struct RBT_STACK {
     size_t size;
     size_t next_index;
-    char *buffer; 
+    char *buffer;
 };
 
 struct RBT_NODE *RBT_new_node( int, void *data );

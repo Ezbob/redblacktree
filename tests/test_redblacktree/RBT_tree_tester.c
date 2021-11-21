@@ -15,12 +15,12 @@ void nofree(void *item) { ((void) item); }
 struct RBT_TREE *RBT_test_tree_default() {
     struct RBT_TREE *tree = RBT_init_tree();
 
-    int n = sizeof(default_keys) / sizeof(default_keys[0]); 
-    default_values = malloc(sizeof(long int) * n); 
+    int n = sizeof(default_keys) / sizeof(default_keys[0]);
+    default_values = malloc(sizeof(long int) * n);
 
     for ( int i = 0; i < n; ++i ) {
         default_values[i] = ((long int) i);
-        
+
         RBT_add(tree, default_keys[i], default_values + i );
     }
 
@@ -70,10 +70,10 @@ int RBT_red_has_black_children(struct RBT_NODE *node) {
         return 1;
     }
 
-    int has_black_children = RBT_IS_RED(node) ? RBT_IS_BLACK(node->right) && 
+    int has_black_children = RBT_IS_RED(node) ? RBT_IS_BLACK(node->right) &&
         RBT_IS_BLACK(node->left) : 1;
 
-    return has_black_children && RBT_red_has_black_children(node->left) 
+    return has_black_children && RBT_red_has_black_children(node->left)
         && RBT_red_has_black_children(node->left);
 }
 
@@ -88,7 +88,7 @@ void RBT_test_insert() {
     RBT_test_is_RB_tree(tree);
 
     RBT_add(tree, 12, NULL);
-    
+
     RBT_pretty_printer(tree->root);
 
     RBT_test_is_RB_tree(tree);
@@ -151,7 +151,7 @@ void RBT_test_find() {
 
 void RBT_test_min_max() {
     struct RBT_TREE *tree = RBT_test_tree_default();
-    
+
     RBT_test_is_RB_tree(tree);
 
     long int *value;
