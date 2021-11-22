@@ -13,7 +13,7 @@
 #define RBT_ERROR(message) fprintf(stderr, "Error: %s\n", message)
 #define RBT_ERROR_STOP(code, message)  do { fprintf(stderr, "Error: %s\n", message); exit(code); } while ( 0 )
 
-// NULL values are black per difinition, so node has
+// NULL values are black per definition, so node has
 // to be non-NULL for it to be RBT_RED
 
 #define RBT_COLOR_CHAR(node) RBT_IS_RED(node) ? 'r' : 'b'
