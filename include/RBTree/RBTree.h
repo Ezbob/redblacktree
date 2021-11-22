@@ -7,7 +7,7 @@
  * end nodes instead of keeping a allocated nill node that is black
  * but can take on any value.
  *
- * Implemented by Anders Busch (2016)
+ * Implemented by Anders Busch (2016-2021)
  *
  **/
 #ifndef RB_TREE_H
@@ -15,10 +15,18 @@
 
 #include <stdlib.h>
 
+/**
+ * Coloring of a tree node
+ */
 enum RBT_COLOR {
-	RBT_BLACK, RBT_RED
+	RBT_BLACK,
+	RBT_RED
 };
 
+/**
+ * Internal RBT tree node, carrying a key and a data reference,
+ * as well as reference to sub and parent nodes.
+ */
 struct RBT_NODE {
 	enum RBT_COLOR color;
 	size_t key;
@@ -28,29 +36,82 @@ struct RBT_NODE {
 	struct RBT_NODE *parent;
 };
 
+/**
+ * Front facade for the RBT tree carrying the root node,
+ * as well as some meta data.
+ */
 struct RBT_TREE {
 	struct RBT_NODE *root;
 	size_t node_count;
+	void *(*node_allocator)(size_t);
+	void (*node_deallocator)(void *);
 };
 
+/**
+ *  RBT tree initialization.
+ *  The memory allocation of the RBT_TREE is owned by the caller.
+ *  Internal Nodes in the tree are created by the provided malloc-like allocator function,
+ *  and deallocation by the provided free-like dellocator function.
+ *  @returns a non-zero value on success, and zero on failure.
+ */
+int RBT_init_tree(struct RBT_TREE *tree, void *(*node_allocator)(size_t), void (*node_deallocator)(void *));
 
-struct RBT_TREE *RBT_init_tree(void);
+/**
+ * RBT tree de-initialization.
+ * Deallocates any internal nodes of a initialized tree. If a data_deallocator is provided, it is
+ * called for every value stored in the tree just before the node is destroyed.
+ * As the memory for the RBT_TREE is considered owned by the caller, it is NOT freed by this function.
+ */
+void RBT_deinit_tree(struct RBT_TREE *tree, void (*)(void *data_deallocator));
 
-void RBT_destroy_tree(struct RBT_TREE *, void (*)(void *));
-
+/**
+ * Adds a new node to the tree with the given key and value.
+ * @returns The added value, if any, NULL otherwise.
+ */
 void *RBT_add(struct RBT_TREE *, size_t, void *);
 
+/**
+ * Delete a node with the given key from the given RBT tree.
+ * @returns a non-zero value on successful deletion, zero otherwise.
+ */
 int RBT_delete(struct RBT_TREE *, size_t);
 
+/**
+ * Finds a value in the RBT tree given a key.
+ * @returns the found value, if any, NULL otherwise.
+ */
 void *RBT_find(struct RBT_TREE *, size_t);
 
+/**
+ * Finds the key and value in the tree of the element with the trees' maximum key value.
+ * "key" and "value" are both optional (they can be NULL) output variables that gets written to,
+ * if any element was found.
+ * @returns a non-zero value on successful deletion, zero otherwise.
+ */
 int RBT_get_maximum(struct RBT_TREE *tree, size_t *key, void **value);
 
+/**
+ * Finds the key and value in the tree of the element with the trees' minimum key value.
+ * "key" and "value" are both optional (they can be NULL) output variables that gets written to,
+ * if any element was found.
+ * @returns a non-zero value on successful deletion, zero otherwise.
+ */
 int RBT_get_minimum(struct RBT_TREE *tree, size_t *key, void **value);
 
+
+/**
+ * Prints a tree node, and it's subnodes in a ASCII tree to the stdout stream.
+ */
 void RBT_pretty_printer(struct RBT_NODE *);
 
-#define RBT_PRETTY_PRINT(tree) RBT_pretty_printer(tree->root)
-#define RBT_NODE_COUNT(tree) ( tree->node_count )
+/**
+ * Convience macro for pretty printing a whole RBT tree.
+ */
+#define RBT_PRETTY_PRINT(tree_ptr) RBT_pretty_printer((tree_ptr)->root)
+
+/**
+ * Convience macro for getting the node count of a RBT tree
+ */
+#define RBT_NODE_COUNT(tree_ptr) ((tree_ptr)->node_count)
 
 #endif

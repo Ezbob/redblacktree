@@ -29,13 +29,13 @@ struct RBT_STACK {
     char *buffer;
 };
 
-struct RBT_NODE *RBT_new_node( int, void *data );
-void RBT_destroy_node(struct RBT_NODE *, void (*f)(void *));
+struct RBT_NODE *RBT_new_node(struct RBT_TREE *, int, void *);
+void RBT_destroy_node(struct RBT_TREE *, struct RBT_NODE *, void (*f)(void *));
 void RBT_left_rotate(struct RBT_TREE *, struct RBT_NODE *);
 void RBT_right_rotate(struct RBT_TREE *, struct RBT_NODE *);
 void RBT_insert_fixup(struct RBT_TREE *, struct RBT_NODE *);
 struct RBT_NODE *RBT_insert(struct RBT_TREE *, struct RBT_NODE *);
-void RBT_recursive_destroy(struct RBT_NODE *, void (*f)(void *));
+void RBT_recursive_destroy(struct RBT_TREE *tree, struct RBT_NODE *node, void (*freedata)(void *));
 struct RBT_STACK *RBT_new_stack( size_t size );
 void RBT_destroy_stack(struct RBT_STACK * stack);
 void RBT_pretty_printer_helper(struct RBT_NODE *node, struct RBT_STACK *);
@@ -50,11 +50,9 @@ struct RBT_NODE *RBT_maximum(struct RBT_NODE *);
 struct RBT_NODE *RBT_iterative_find(struct RBT_NODE *node, size_t key );
 
 
-struct RBT_NODE *RBT_new_node( int key, void *data ) {
-    struct RBT_NODE *new_node;
-    new_node = malloc( sizeof(struct RBT_NODE) );
-    if ( new_node == NULL ) {
-        RBT_ERROR_STOP( EXIT_FAILURE, "Cannot allocate more memory." );
+struct RBT_NODE *RBT_new_node(struct RBT_TREE *tree, int key, void *data ) {
+    struct RBT_NODE *new_node = tree->node_allocator( sizeof(struct RBT_NODE) );
+    if ( !new_node ) {
         return NULL;
     }
     new_node->left = NULL;
@@ -66,41 +64,42 @@ struct RBT_NODE *RBT_new_node( int key, void *data ) {
     return new_node;
 }
 
-void RBT_destroy_node(struct RBT_NODE *node, void (*freedata)(void *)) {
-    if ( node != NULL ) {
-        if (freedata) {
-            freedata(node->data);
-        }
-        node->left = NULL;
-        node->right = NULL;
-        node->parent = NULL;
-        free(node);
+void RBT_destroy_node(struct RBT_TREE *tree, struct RBT_NODE *node, void (*freedata)(void *)) {
+    if ( !node || !tree ) {
+        return;
     }
+    if (freedata) {
+        freedata(node->data);
+    }
+    node->left = NULL;
+    node->right = NULL;
+    node->parent = NULL;
+    tree->node_deallocator(node);
 }
 
-struct RBT_TREE *RBT_init_tree() {
-    struct RBT_TREE *new_tree;
-    new_tree = malloc( sizeof(struct RBT_TREE) );
-    if ( new_tree == NULL ) {
-        RBT_ERROR_STOP( EXIT_FAILURE, "Cannot allocate more memory." );
+int RBT_init_tree(struct RBT_TREE *tree, void *(*allocator)(size_t), void (*deallocator)(void *)) {
+    if ( !tree || !allocator || !deallocator ) {
+        return 0;
     }
-    new_tree->root = NULL;
-    new_tree->node_count = 0;
-    return new_tree;
+    tree->node_allocator = allocator;
+    tree->node_deallocator = deallocator;
+    tree->root = NULL;
+    tree->node_count = 0;
+    return 1;
 }
 
-void RBT_recursive_destroy(struct RBT_NODE *node, void (*freedata)(void *)) {
-    if ( node != NULL ) {
-        RBT_recursive_destroy( node->left, freedata );
-        RBT_recursive_destroy( node->right, freedata );
-
-        RBT_destroy_node( node, freedata );
+void RBT_recursive_destroy(struct RBT_TREE *tree, struct RBT_NODE *node, void (*freedata)(void *)) {
+    if ( !node || !tree ) {
+        return;
     }
+    RBT_recursive_destroy(tree, node->left, freedata );
+    RBT_recursive_destroy(tree, node->right, freedata );
+
+    RBT_destroy_node(tree, node, freedata);
 }
 
-void RBT_destroy_tree(struct RBT_TREE *tree, void (*freedata)(void *)) {
-    RBT_recursive_destroy(tree->root, freedata);
-    free(tree);
+void RBT_deinit_tree(struct RBT_TREE *tree, void (*freedata)(void *)) {
+    RBT_recursive_destroy(tree, tree->root, freedata);
 }
 
 void RBT_left_rotate(struct RBT_TREE *tree, struct RBT_NODE *node) {
@@ -229,8 +228,8 @@ struct RBT_NODE *RBT_insert(struct RBT_TREE *tree, struct RBT_NODE *node) {
 
 void *RBT_add( struct RBT_TREE *tree, size_t key, void *data ) {
     tree->node_count++;
-    struct RBT_NODE *inserted = RBT_insert(tree, RBT_new_node( key, data ));
-    return inserted == NULL ? inserted : inserted->data;
+    struct RBT_NODE *inserted = RBT_insert(tree, RBT_new_node(tree, key, data));
+    return (inserted == NULL) ? inserted : inserted->data;
 }
 
 struct RBT_NODE *RBT_minimum(struct RBT_NODE *node) {
@@ -387,7 +386,7 @@ int RBT_remove(struct RBT_TREE *tree, struct RBT_NODE *node ) {
     if ( old_color == RBT_BLACK ) {
         RBT_remove_fixup(tree, point);
     }
-    free(node);
+    tree->node_deallocator(node);
     tree->node_count--;
 
     return 1;
