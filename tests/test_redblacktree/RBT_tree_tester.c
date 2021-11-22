@@ -155,25 +155,17 @@ void RBT_test_min_max() {
     RBT_test_is_RB_tree(tree);
 
     long int *value;
-    struct RBT_PAIR *pair = NULL;
+    size_t key;
 
-    pair = RBT_get_minimum(tree);
-
-    if ( TEST_CHECK( pair != NULL ) ) {
-        TEST_CHECK( RBT_PAIR_KEY(pair) == 3 );
-        value = RBT_PAIR_VALUE(pair);
+    if ( TEST_CHECK( RBT_get_minimum(tree, &key, &value) ) ) {
+        TEST_CHECK( key == 3 );
         TEST_CHECK( *value == 5L );
     }
-    RBT_destroy_pair(pair);
 
-    pair = RBT_get_maximum(tree);
-
-    if ( TEST_CHECK( pair != NULL ) ) {
-        TEST_CHECK( RBT_PAIR_KEY(pair) == 34 );
-        value = RBT_PAIR_VALUE(pair);
+    if ( TEST_CHECK( RBT_get_maximum(tree, &key, &value) ) ) {
+        TEST_CHECK( key == 34 );
         TEST_CHECK( *value == 3L );
     }
-    RBT_destroy_pair(pair);
 
     RBT_test_tree_default_cleanup(tree);
 }
@@ -181,8 +173,8 @@ void RBT_test_min_max() {
 void RBT_test_min_max_null() {
     struct RBT_TREE *tree = RBT_init_tree();
 
-    TEST_CHECK( RBT_get_minimum(tree) == NULL );
-    TEST_CHECK( RBT_get_maximum(tree) == NULL );
+    TEST_CHECK( !RBT_get_minimum(tree, NULL, NULL) );
+    TEST_CHECK( !RBT_get_maximum(tree, NULL, NULL) );
 
     RBT_destroy_tree(tree, nofree);
 }

@@ -419,26 +419,35 @@ int RBT_delete(struct RBT_TREE *tree, size_t key) {
     return 0;
 }
 
-struct RBT_PAIR *RBT_get_maximum(struct RBT_TREE *tree) {
+int RBT_get_maximum(struct RBT_TREE *tree, size_t *key, void **value) {
     struct RBT_NODE *node = RBT_maximum(tree->root);
-    struct RBT_PAIR *results = NULL;
-
-    if ( node != NULL ) {
-        results = RBT_new_pair(node->key, node->data);
+    if (!node) {
+        return 0;
+    }
+    if (key) {
+        *key = node->key;
+    }
+    if (value) {
+        *value = node->data;
     }
 
-    return results;
+    return 1;
 }
 
-struct RBT_PAIR *RBT_get_minimum(struct RBT_TREE *tree) {
-    struct RBT_NODE *node = RBT_minimum(tree->root);
-    struct RBT_PAIR *results = NULL;
 
-    if ( node != NULL ) {
-        results = RBT_new_pair(node->key, node->data);
+int RBT_get_minimum(struct RBT_TREE *tree, size_t *key, void **value) {
+    struct RBT_NODE *node = RBT_minimum(tree->root);
+    if (!node) {
+        return 0;
+    }
+    if (key) {
+        *key = node->key;
+    }
+    if (value) {
+        *value = node->data;
     }
 
-    return results;
+    return 1;
 }
 
 

@@ -40,9 +40,7 @@ struct RBT_PAIR {
 
 struct RBT_TREE *RBT_init_tree(void);
 
-void RBT_destroy_tree(struct RBT_TREE *, void (*freedata)(void *));
-
-void RBT_destroy_pair(struct RBT_PAIR *);
+void RBT_destroy_tree(struct RBT_TREE *, void (*)(void *));
 
 void *RBT_add(struct RBT_TREE *, size_t, void *);
 
@@ -50,15 +48,13 @@ int RBT_delete(struct RBT_TREE *, size_t);
 
 void *RBT_find(struct RBT_TREE *, size_t);
 
-struct RBT_PAIR *RBT_get_maximum(struct RBT_TREE *);
+int RBT_get_maximum(struct RBT_TREE *tree, size_t *key, void **value);
 
-struct RBT_PAIR *RBT_get_minimum(struct RBT_TREE *);
+int RBT_get_minimum(struct RBT_TREE *tree, size_t *key, void **value);
 
 void RBT_pretty_printer(struct RBT_NODE *);
 
 #define RBT_PRETTY_PRINT(tree) RBT_pretty_printer(tree->root)
 #define RBT_NODE_COUNT(tree) ( tree->node_count )
-#define RBT_PAIR_KEY(pair) ( pair->key )
-#define RBT_PAIR_VALUE(pair) ( pair->value )
 
 #endif
