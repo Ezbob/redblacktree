@@ -33,10 +33,6 @@ struct RBT_TREE {
 	size_t node_count;
 };
 
-struct RBT_PAIR {
-	size_t key;
-	void *value;
-};
 
 struct RBT_TREE *RBT_init_tree(void);
 

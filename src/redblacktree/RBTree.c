@@ -48,25 +48,7 @@ void RBT_transplant_tree(struct RBT_TREE *, struct RBT_NODE *, struct RBT_NODE *
 struct RBT_NODE *RBT_minimum(struct RBT_NODE *);
 struct RBT_NODE *RBT_maximum(struct RBT_NODE *);
 struct RBT_NODE *RBT_iterative_find(struct RBT_NODE *node, size_t key );
-struct RBT_PAIR *RBT_new_pair(size_t key, void *value);
 
-struct RBT_PAIR *RBT_new_pair(size_t key, void *value) {
-    struct RBT_PAIR *pair = malloc( sizeof(struct RBT_PAIR) );
-    if ( pair == NULL ) {
-        RBT_ERROR_STOP( EXIT_FAILURE, "Cannot allocate more memory." );
-        return NULL;
-    }
-
-    pair->key = key;
-    pair->value = value;
-
-    return pair;
-}
-
-void RBT_destroy_pair(struct RBT_PAIR *pair) {
-    pair->value = NULL;
-    free(pair);
-}
 
 struct RBT_NODE *RBT_new_node( int key, void *data ) {
     struct RBT_NODE *new_node;
@@ -86,7 +68,9 @@ struct RBT_NODE *RBT_new_node( int key, void *data ) {
 
 void RBT_destroy_node(struct RBT_NODE *node, void (*freedata)(void *)) {
     if ( node != NULL ) {
-        freedata(node->data);
+        if (freedata) {
+            freedata(node->data);
+        }
         node->left = NULL;
         node->right = NULL;
         node->parent = NULL;
@@ -106,7 +90,6 @@ struct RBT_TREE *RBT_init_tree() {
 }
 
 void RBT_recursive_destroy(struct RBT_NODE *node, void (*freedata)(void *)) {
-
     if ( node != NULL ) {
         RBT_recursive_destroy( node->left, freedata );
         RBT_recursive_destroy( node->right, freedata );
