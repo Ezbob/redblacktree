@@ -3,7 +3,7 @@
 
 void RBT_test_creation_deletion_stack() {
     size_t size = 20;
-    struct RBT_STACK *stack = RBT_new_stack( size );
+    struct RBT_Stack *stack = RBT_new_stack( size );
 
     TEST_CHECK( stack != NULL );
 
@@ -16,7 +16,7 @@ void RBT_test_creation_deletion_stack() {
 
 void RBT_test_creation_deletion_stack_fail() {
     size_t size = 0;
-    struct RBT_STACK *stack = RBT_new_stack( size );
+    struct RBT_Stack *stack = RBT_new_stack( size );
 
     TEST_CHECK( stack == NULL );
 
@@ -25,7 +25,7 @@ void RBT_test_creation_deletion_stack_fail() {
 
 void RBT_test_push_stack() {
     size_t size = 10;
-    struct RBT_STACK *stack = RBT_new_stack( size );
+    struct RBT_Stack *stack = RBT_new_stack( size );
 
     TEST_CHECK( stack != NULL );
 
@@ -52,7 +52,7 @@ void RBT_test_push_stack() {
 
 void RBT_test_push_stack_fail() {
     size_t size = 2;
-    struct RBT_STACK *stack = RBT_new_stack( size );
+    struct RBT_Stack *stack = RBT_new_stack( size );
 
     TEST_CHECK( stack != NULL );
 

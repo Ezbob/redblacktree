@@ -18,69 +18,69 @@
 /**
  * Coloring of a tree node
  */
-enum RBT_COLOR {
-	RBT_BLACK,
-	RBT_RED
+enum RBT_Color {
+    RBT_BLACK,
+    RBT_RED
 };
 
 /**
  * Internal RBT tree node, carrying a key and a data reference,
  * as well as reference to sub and parent nodes.
  */
-struct RBT_NODE {
-	enum RBT_COLOR color;
-	size_t key;
-	void *data;
-	struct RBT_NODE *left;
-	struct RBT_NODE *right;
-	struct RBT_NODE *parent;
+struct RBT_Node {
+    enum RBT_Color color;
+    size_t key;
+    void *data;
+    struct RBT_Node *left;
+    struct RBT_Node *right;
+    struct RBT_Node *parent;
 };
 
 /**
  * Front facade for the RBT tree carrying the root node,
  * as well as some meta data.
  */
-struct RBT_TREE {
-	struct RBT_NODE *root;
-	size_t node_count;
-	void *(*node_allocator)(size_t);
-	void (*node_deallocator)(void *);
+struct RBT_Tree {
+    struct RBT_Node *root;
+    size_t node_count;
+    void *(*node_allocator)(size_t);
+    void (*node_deallocator)(void *);
 };
 
 /**
  *  RBT tree initialization.
- *  The memory allocation of the RBT_TREE is owned by the caller.
+ *  The memory allocation of the RBT_Tree is owned by the caller.
  *  Internal Nodes in the tree are created by the provided malloc-like allocator function,
  *  and deallocation by the provided free-like dellocator function.
  *  @returns a non-zero value on success, and zero on failure.
  */
-int RBT_init_tree(struct RBT_TREE *tree, void *(*node_allocator)(size_t), void (*node_deallocator)(void *));
+int RBT_init_tree(struct RBT_Tree *tree, void *(*node_allocator)(size_t), void (*node_deallocator)(void *));
 
 /**
  * RBT tree de-initialization.
  * Deallocates any internal nodes of a initialized tree. If a data_deallocator is provided, it is
  * called for every value stored in the tree just before the node is destroyed.
- * As the memory for the RBT_TREE is considered owned by the caller, it is NOT freed by this function.
+ * As the memory for the RBT_Tree is considered owned by the caller, it is NOT freed by this function.
  */
-void RBT_deinit_tree(struct RBT_TREE *tree, void (*)(void *data_deallocator));
+void RBT_deinit_tree(struct RBT_Tree *tree, void (*)(void *data_deallocator));
 
 /**
  * Adds a new node to the tree with the given key and value.
  * @returns The added value, if any, NULL otherwise.
  */
-void *RBT_add(struct RBT_TREE *, size_t, void *);
+void *RBT_add(struct RBT_Tree *, size_t, void *);
 
 /**
  * Delete a node with the given key from the given RBT tree.
  * @returns a non-zero value on successful deletion, zero otherwise.
  */
-int RBT_delete(struct RBT_TREE *, size_t);
+int RBT_delete(struct RBT_Tree *, size_t);
 
 /**
  * Finds a value in the RBT tree given a key.
  * @returns the found value, if any, NULL otherwise.
  */
-void *RBT_find(struct RBT_TREE *, size_t);
+void *RBT_find(struct RBT_Tree *, size_t);
 
 /**
  * Finds the key and value in the tree of the element with the trees' maximum key value.
@@ -88,7 +88,7 @@ void *RBT_find(struct RBT_TREE *, size_t);
  * if any element was found.
  * @returns a non-zero value on successful deletion, zero otherwise.
  */
-int RBT_get_maximum(struct RBT_TREE *tree, size_t *key, void **value);
+int RBT_get_maximum(struct RBT_Tree *tree, size_t *key, void **value);
 
 /**
  * Finds the key and value in the tree of the element with the trees' minimum key value.
@@ -96,13 +96,13 @@ int RBT_get_maximum(struct RBT_TREE *tree, size_t *key, void **value);
  * if any element was found.
  * @returns a non-zero value on successful deletion, zero otherwise.
  */
-int RBT_get_minimum(struct RBT_TREE *tree, size_t *key, void **value);
+int RBT_get_minimum(struct RBT_Tree *tree, size_t *key, void **value);
 
 
 /**
  * Prints a tree node, and it's subnodes in a ASCII tree to the stdout stream.
  */
-void RBT_pretty_printer(struct RBT_NODE *);
+void RBT_pretty_printer(struct RBT_Node *);
 
 /**
  * Convience macro for pretty printing a whole RBT tree.
