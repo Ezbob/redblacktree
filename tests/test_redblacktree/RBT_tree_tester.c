@@ -14,7 +14,7 @@ void nofree(void *item) { ((void) item); }
 
 struct RBT_Tree *RBT_test_tree_default() {
     static struct RBT_Tree tree;
-    RBT_init_tree(&tree, malloc, free);
+    RBT_init_tree(&tree);
 
     int n = sizeof(default_keys) / sizeof(default_keys[0]);
     default_values = malloc(sizeof(long int) * n);
@@ -80,7 +80,7 @@ int RBT_red_has_black_children(struct RBT_Node *node) {
 
 void RBT_test_insert() {
     struct RBT_Tree tree;
-    RBT_init_tree(&tree, malloc, free);
+    RBT_init_tree(&tree);
     printf("hello\n");
 
     RBT_add(&tree, 10, NULL);
@@ -174,7 +174,7 @@ void RBT_test_min_max() {
 
 void RBT_test_min_max_null() {
     struct RBT_Tree tree;
-    RBT_init_tree(&tree, malloc, free);
+    RBT_init_tree(&tree);
 
     TEST_CHECK( !RBT_get_minimum(&tree, NULL, NULL) );
     TEST_CHECK( !RBT_get_maximum(&tree, NULL, NULL) );

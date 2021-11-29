@@ -51,7 +51,7 @@ struct RBT_Node *RBT_iterative_find(struct RBT_Node *node, size_t key );
 
 
 struct RBT_Node *RBT_new_node(struct RBT_Tree *tree, int key, void *data ) {
-    struct RBT_Node *new_node = tree->node_allocator( sizeof(struct RBT_Node) );
+    struct RBT_Node *new_node = RBT_MALLOC( sizeof(struct RBT_Node) );
     if ( !new_node ) {
         return NULL;
     }
@@ -74,15 +74,13 @@ void RBT_destroy_node(struct RBT_Tree *tree, struct RBT_Node *node, void (*freed
     node->left = NULL;
     node->right = NULL;
     node->parent = NULL;
-    tree->node_deallocator(node);
+    RBT_FREE(node);
 }
 
-int RBT_init_tree(struct RBT_Tree *tree, void *(*allocator)(size_t), void (*deallocator)(void *)) {
-    if ( !tree || !allocator || !deallocator ) {
+int RBT_init_tree(struct RBT_Tree *tree) {
+    if ( !tree ) {
         return 0;
     }
-    tree->node_allocator = allocator;
-    tree->node_deallocator = deallocator;
     tree->root = NULL;
     tree->node_count = 0;
     return 1;
@@ -386,7 +384,7 @@ int RBT_remove(struct RBT_Tree *tree, struct RBT_Node *node ) {
     if ( old_color == RBT_BLACK ) {
         RBT_remove_fixup(tree, point);
     }
-    tree->node_deallocator(node);
+    RBT_FREE(node);
     tree->node_count--;
 
     return 1;

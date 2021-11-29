@@ -43,18 +43,14 @@ struct RBT_Node {
 struct RBT_Tree {
     struct RBT_Node *root;
     size_t node_count;
-    void *(*node_allocator)(size_t);
-    void (*node_deallocator)(void *);
 };
 
 /**
  *  RBT tree initialization.
  *  The memory allocation of the RBT_Tree is owned by the caller.
- *  Internal Nodes in the tree are created by the provided malloc-like allocator function,
- *  and deallocation by the provided free-like dellocator function.
  *  @returns a non-zero value on success, and zero on failure.
  */
-int RBT_init_tree(struct RBT_Tree *tree, void *(*node_allocator)(size_t), void (*node_deallocator)(void *));
+int RBT_init_tree(struct RBT_Tree *tree);
 
 /**
  * RBT tree de-initialization.
@@ -113,5 +109,21 @@ void RBT_pretty_printer(struct RBT_Node *);
  * Convience macro for getting the node count of a RBT tree
  */
 #define RBT_NODE_COUNT(tree_ptr) ((tree_ptr)->node_count)
+
+/*
+ * memory allocation function. This function is given a size_t of RBT_Node as the
+ * first argument to allocate a tree node of sizeof(RBT_Node)
+ */
+#ifndef RBT_MALLOC
+#define RBT_MALLOC malloc
+#endif
+
+/*
+ * memory deallocation function. This function is given a pointer to an allocated
+ * node as the first argument, which it is expected to free.
+ */
+#ifndef RBT_FREE
+#define RBT_FREE free
+#endif
 
 #endif
