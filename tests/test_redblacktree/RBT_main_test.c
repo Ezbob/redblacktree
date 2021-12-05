@@ -11,5 +11,6 @@ TEST_LIST = {
        { "creation and deletion of print stack", RBT_test_creation_deletion_stack },
        { "legal stack push", RBT_test_push_stack },
        { "stack push overflow try", RBT_test_push_stack_fail },
+       { "static allocation", RBT_test_static_allocate_nodes},
        { 0 }
 };

@@ -209,3 +209,49 @@ void RBT_test_remove() {
     RBT_test_tree_default_cleanup(tree);
 }
 
+static struct RBT_Node nodes[8];
+static size_t i = 0;
+
+struct RBT_Node *my_malloc(size_t a) {
+    (void)(a);
+    if (i < 6) {
+        return &nodes[i];
+    } else {
+        return NULL;
+    }
+}
+
+void my_free(struct RBT_Node *node) {
+    (void)(node);
+}
+
+void RBT_test_static_allocate_nodes() {
+    struct RBT_Tree tree;
+    struct RBT_Node nodes[6];
+    #undef RBT_MALLOC
+    #undef RBT_FREE
+    #define RBT_MALLOC my_malloc
+    #define RBT_FREE my_free
+
+    RBT_init_tree(&tree);
+
+    TEST_CHECK( RBT_NODE_COUNT(&tree) == 0 );
+
+    int a = 23;
+    int b = 13;
+    RBT_add(&tree, 10, &b);
+    RBT_add(&tree, 11, &a);
+
+    int *j = RBT_find(&tree, 11);
+    int *bj = RBT_find(&tree, 10);
+
+    TEST_CHECK( j != NULL );
+    TEST_CHECK( bj != NULL );
+
+    TEST_CHECK( a == *j );
+    TEST_CHECK( b == *bj );
+
+    TEST_CHECK( RBT_NODE_COUNT(&tree) == 2 );
+
+    RBT_deinit_tree(&tree, nofree);
+}

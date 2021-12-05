@@ -54,6 +54,7 @@ void RBT_test_creation_deletion_stack(void);
 void RBT_test_push_stack(void);
 void RBT_test_creation_deletion_stack_fail(void);
 void RBT_test_push_stack_fail(void);
+void RBT_test_static_allocate_nodes(void);
 
 // end of functions
 
