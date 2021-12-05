@@ -1,5 +1,5 @@
-#include "RBTree/test/pub_cutest.h"
-#include "RBTree/test/test_functions.h"
+#include "pub_cutest.h"
+#include "test_functions.h"
 
 void RBT_test_creation_deletion_stack() {
     size_t size = 20;

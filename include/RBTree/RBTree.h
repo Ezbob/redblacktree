@@ -14,6 +14,7 @@
 #define RB_TREE_H
 
 #include <stdlib.h>
+#include <stdint.h>
 
 /**
  * Coloring of a tree node
@@ -29,7 +30,7 @@ enum RBT_Color {
  */
 struct RBT_Node {
     enum RBT_Color color;
-    size_t key;
+    uint64_t key;
     void *data;
     struct RBT_Node *left;
     struct RBT_Node *right;

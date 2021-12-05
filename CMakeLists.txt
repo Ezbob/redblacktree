@@ -45,9 +45,9 @@ set_target_properties(redblacktree redblacktree_static
 add_executable(redblacktree_test "")
 target_sources(redblacktree_test
   PRIVATE
-    ${CMAKE_CURRENT_LIST_DIR}/tests/test_redblacktree/RBT_main_test.c
-    ${CMAKE_CURRENT_LIST_DIR}/tests/test_redblacktree/RBT_print_tester.c
-    ${CMAKE_CURRENT_LIST_DIR}/tests/test_redblacktree/RBT_tree_tester.c
+    ${CMAKE_CURRENT_LIST_DIR}/tests/main_test.c
+    ${CMAKE_CURRENT_LIST_DIR}/tests/print_tester.c
+    ${CMAKE_CURRENT_LIST_DIR}/tests/tree_tester.c
 )
 target_link_libraries(redblacktree_test
   PUBLIC
