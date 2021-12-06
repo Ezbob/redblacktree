@@ -3,8 +3,8 @@
 #include "pub_cutest.h"
 #include "test_functions.h"
 
-#define RBT_IS_RED(node) (node != NULL && node->color == RBT_RED)
-#define RBT_IS_BLACK(node) (node == NULL || node->color == RBT_BLACK)
+#define RBT_IS_RED(node) (node && ((node->key & (UINTMAX_C(1) << (8 * sizeof(uintmax_t) - 1))) != 0))
+#define RBT_IS_BLACK(node)  (! RBT_IS_RED(node))
 
 static int default_keys[] = { 10, 12, 20, 34, 6, 3 };
 static long int *default_values;
@@ -37,7 +37,7 @@ void RBT_test_tree_default_cleanup(struct RBT_Tree *tree) {
 
 void RBT_test_is_RB_tree(struct RBT_Tree *tree) {
 
-    TEST_CHECK_( tree->root->color == RBT_BLACK, "RB properties: root is not black" );
+    TEST_CHECK_( RBT_IS_BLACK(tree->root), "RB properties: root is not black" );
 
     TEST_CHECK_( RBT_has_even_black_height(tree->root), "RB properties: every path from root does not have equal black height" );
 
@@ -81,7 +81,6 @@ int RBT_red_has_black_children(struct RBT_Node *node) {
 void RBT_test_insert() {
     struct RBT_Tree tree;
     RBT_init_tree(&tree);
-    printf("hello\n");
 
     RBT_add(&tree, 10, NULL);
 
@@ -156,16 +155,19 @@ void RBT_test_min_max() {
 
     RBT_test_is_RB_tree(tree);
 
+    RBT_pretty_printer(tree->root);
+
     long int *value;
-    size_t key;
+    uintmax_t key;
 
     if ( TEST_CHECK( RBT_get_minimum(tree, &key, &value) ) ) {
-        TEST_CHECK( key == 3 );
+        TEST_CHECK( key == UINTMAX_C(3) );
         TEST_CHECK( *value == 5L );
     }
 
     if ( TEST_CHECK( RBT_get_maximum(tree, &key, &value) ) ) {
-        TEST_CHECK( key == 34 );
+        printf("--> %llu, %li\n", key, *value);
+        TEST_CHECK( key == UINTMAX_C(34) );
         TEST_CHECK( *value == 3L );
     }
 

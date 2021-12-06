@@ -17,20 +17,11 @@
 #include <stdint.h>
 
 /**
- * Coloring of a tree node
- */
-enum RBT_Color {
-    RBT_BLACK,
-    RBT_RED
-};
-
-/**
  * Internal RBT tree node, carrying a key and a data reference,
  * as well as reference to sub and parent nodes.
  */
 struct RBT_Node {
-    enum RBT_Color color;
-    uint64_t key;
+    uintmax_t key;
     void *data;
     struct RBT_Node *left;
     struct RBT_Node *right;

@@ -50,8 +50,6 @@ void RBT_test_find(void);
 void RBT_test_min_max(void);
 void RBT_test_min_max_null(void);
 
-void RBT_test_creation_deletion_stack(void);
-void RBT_test_push_stack(void);
 void RBT_test_creation_deletion_stack_fail(void);
 void RBT_test_push_stack_fail(void);
 void RBT_test_static_allocate_nodes(void);

@@ -9,9 +9,40 @@
 #include <stdlib.h>
 #include <stdio.h>
 #include <assert.h>
-#include "RBTPrivate.h"
 
-struct RBT_Node *RBT_new_node(struct RBT_Tree *tree, int key, void *data ) {
+#define RBT_ERROR(message) fprintf(stderr, "Error: %s\n", message)
+#define RBT_ERROR_STOP(code, message)  do { fprintf(stderr, "Error: %s\n", message); exit(code); } while ( 0 )
+
+// Linear bounded stack for printing purposes
+struct RBT_Stack {
+    size_t size;
+    size_t next_index;
+    char *buffer;
+};
+
+#define RBT_COLOR_CHAR(node) RBT_IS_RED(node) ? 'r' : 'b'
+#define RBT_TAB_SIZE 4
+
+#define RBT_COLOR_BITMASK (UINTMAX_C(1) << (8 * sizeof(uintmax_t) - 1))
+
+#define RBT_IS_RED(node) (node && ((node->key & RBT_COLOR_BITMASK) != 0))
+#define RBT_IS_BLACK(node)  (! RBT_IS_RED(node))
+
+// highest significat bit set = RED
+#define RBT_SET_BLACK(node) ( (node)->key &= ~(RBT_COLOR_BITMASK) )
+#define RBT_SET_RED(node) ( (node)->key |= RBT_COLOR_BITMASK )
+
+#define RBT_COPY_COLOR(dest, source) (RBT_IS_RED(source) ? RBT_SET_RED(dest) : RBT_SET_BLACK(dest))
+
+#define RBT_IS_KEY_BLACK(key) ((key & RBT_COLOR_BITMASK) == 0)
+
+#define RBT_KEYVALUE(key) (key & (~RBT_COLOR_BITMASK))
+
+
+/* ---- PRIVATE FUNCTIONS ---- */
+
+
+static inline struct RBT_Node *RBT_new_node(struct RBT_Tree *tree, uintmax_t key, void *data ) {
     struct RBT_Node *new_node = RBT_MALLOC( sizeof(struct RBT_Node) );
     if ( !new_node ) {
         return NULL;
@@ -21,11 +52,10 @@ struct RBT_Node *RBT_new_node(struct RBT_Tree *tree, int key, void *data ) {
     new_node->parent = NULL;
     new_node->key = key;
     new_node->data = data;
-    new_node->color = RBT_BLACK;
     return new_node;
 }
 
-void RBT_destroy_node(struct RBT_Tree *tree, struct RBT_Node *node, void (*freedata)(void *)) {
+static inline void RBT_destroy_node(struct RBT_Tree *tree, struct RBT_Node *node, void (*freedata)(void *)) {
     if ( !node || !tree ) {
         return;
     }
@@ -38,16 +68,7 @@ void RBT_destroy_node(struct RBT_Tree *tree, struct RBT_Node *node, void (*freed
     RBT_FREE(node);
 }
 
-int RBT_init_tree(struct RBT_Tree *tree) {
-    if ( !tree ) {
-        return 0;
-    }
-    tree->root = NULL;
-    tree->node_count = 0;
-    return 1;
-}
-
-void RBT_recursive_destroy(struct RBT_Tree *tree, struct RBT_Node *node, void (*freedata)(void *)) {
+static void RBT_recursive_destroy(struct RBT_Tree *tree, struct RBT_Node *node, void (*freedata)(void *)) {
     if ( !node || !tree ) {
         return;
     }
@@ -57,11 +78,33 @@ void RBT_recursive_destroy(struct RBT_Tree *tree, struct RBT_Node *node, void (*
     RBT_destroy_node(tree, node, freedata);
 }
 
-void RBT_deinit_tree(struct RBT_Tree *tree, void (*freedata)(void *)) {
-    RBT_recursive_destroy(tree, tree->root, freedata);
+static inline struct RBT_Node *RBT_minimum(struct RBT_Node *node) {
+    if ( node == NULL ) {
+        return NULL;
+    } else if ( node->left == NULL ) {
+        return node;
+    }
+    struct RBT_Node *iterator = node->left;
+    while (iterator->left != NULL) {
+        iterator = iterator->left;
+    }
+    return iterator;
 }
 
-void RBT_left_rotate(struct RBT_Tree *tree, struct RBT_Node *node) {
+static inline struct RBT_Node *RBT_maximum(struct RBT_Node *node) {
+    if ( node == NULL ) {
+        return NULL;
+    } else if ( node->right == NULL ) {
+        return node;
+    }
+    struct RBT_Node *iterator = node->right;
+    while ( iterator->right != NULL ) {
+        iterator = iterator->right;
+    }
+    return iterator;
+}
+
+static inline void RBT_left_rotate(struct RBT_Tree *tree, struct RBT_Node *node) {
     if ( node->right != NULL ) {
         struct RBT_Node *right_node = node->right;
         node->right = right_node->left;
@@ -83,7 +126,7 @@ void RBT_left_rotate(struct RBT_Tree *tree, struct RBT_Node *node) {
     }
 }
 
-void RBT_right_rotate(struct RBT_Tree *tree, struct RBT_Node *node) {
+static inline void RBT_right_rotate(struct RBT_Tree *tree, struct RBT_Node *node) {
     if ( node->left != NULL ) {
         struct RBT_Node *left_node = node->left;
         node->left = left_node->right;
@@ -105,57 +148,14 @@ void RBT_right_rotate(struct RBT_Tree *tree, struct RBT_Node *node) {
     }
 }
 
-void RBT_insert_fixup(struct RBT_Tree *tree, struct RBT_Node *node ) {
-    if ( tree == NULL || node == NULL ) {
-        return;
-    }
-    while ( RBT_IS_RED( node->parent ) ) {
-        if ( node->parent == node->parent->parent->left ) {
-            struct RBT_Node *right_node = node->parent->parent->right;
-            if ( RBT_IS_RED( right_node ) ) {
-                // uncle and parent of node is red -> color them black
-                node->parent->color = RBT_BLACK;
-                right_node->color = RBT_BLACK;
-                node->parent->parent->color = RBT_RED;
-                node = node->parent->parent;
-                continue;
-            } else if ( node == node->parent->right ) {
-                // uncle is black
-                node = node->parent;
-                RBT_left_rotate(tree, node);
-            }
-
-            node->parent->color = RBT_BLACK;
-            node->parent->parent->color = RBT_RED;
-            RBT_right_rotate(tree, node->parent->parent);
-        } else {
-            struct RBT_Node *left_node = node->parent->parent->left;
-            if ( RBT_IS_RED( left_node ) ) {
-                node->parent->color = RBT_BLACK;
-                left_node->color = RBT_BLACK;
-                node->parent->parent->color = RBT_RED;
-                node = node->parent->parent;
-                continue;
-            } else if ( node == node->parent->left ) {
-                node = node->parent;
-                RBT_right_rotate(tree, node);
-            }
-            node->parent->color = RBT_BLACK;
-            node->parent->parent->color = RBT_RED;
-            RBT_left_rotate(tree, node->parent->parent);
-        }
-    }
-    tree->root->color = RBT_BLACK;
-}
-
-struct RBT_Node *RBT_find_parent(struct RBT_Tree *tree, struct RBT_Node *node) {
+static inline struct RBT_Node *RBT_find_parent(struct RBT_Tree *tree, struct RBT_Node *node) {
     struct RBT_Node *parent = NULL;
     struct RBT_Node *iterator = tree->root;
 
     while ( iterator != NULL ) { // traversal of the tree finding parent of node
         parent = iterator;
 
-        if ( node->key < iterator->key ) {
+        if ( RBT_KEYVALUE(node->key) < RBT_KEYVALUE(iterator->key) ) {
             iterator = iterator->left;
         } else {
             iterator = iterator->right;
@@ -164,8 +164,101 @@ struct RBT_Node *RBT_find_parent(struct RBT_Tree *tree, struct RBT_Node *node) {
     return parent;
 }
 
-struct RBT_Node *RBT_insert(struct RBT_Tree *tree, struct RBT_Node *node) {
+static inline void RBT_insert_fixup(struct RBT_Tree *tree, struct RBT_Node *node ) {
+    if ( tree == NULL || node == NULL ) {
+        return;
+    }
+    while ( RBT_IS_RED( node->parent ) ) {
+        if ( node->parent == node->parent->parent->left ) {
+            struct RBT_Node *right_node = node->parent->parent->right;
+            if ( RBT_IS_RED( right_node ) ) {
+                // uncle and parent of node is red -> color them black
+                RBT_SET_BLACK( node->parent );
+                RBT_SET_BLACK( right_node );
+                RBT_SET_RED( node->parent->parent );
+                node = node->parent->parent;
+                continue;
+            } else if ( node == node->parent->right ) {
+                // uncle is black
+                node = node->parent;
+                RBT_left_rotate(tree, node);
+            }
 
+            RBT_SET_BLACK(node->parent);
+            RBT_SET_RED(node->parent->parent);
+            RBT_right_rotate(tree, node->parent->parent);
+        } else {
+            struct RBT_Node *left_node = node->parent->parent->left;
+            if ( RBT_IS_RED( left_node ) ) {
+                RBT_SET_BLACK( node->parent );
+                RBT_SET_BLACK( left_node );
+                RBT_SET_RED( node->parent->parent );
+                node = node->parent->parent;
+                continue;
+            } else if ( node == node->parent->left ) {
+                node = node->parent;
+                RBT_right_rotate(tree, node);
+            }
+            RBT_SET_BLACK(node->parent);
+            RBT_SET_RED(node->parent->parent);
+            RBT_left_rotate(tree, node->parent->parent);
+        }
+    }
+    RBT_SET_BLACK(tree->root);
+}
+
+static inline void RBT_remove_fixup(struct RBT_Tree *tree, struct RBT_Node *node) {
+    while ( RBT_IS_BLACK( node ) && node != tree->root ) {
+        if ( node == node->parent->left ) {
+            struct RBT_Node *sibling = node->parent->right;
+            if ( RBT_IS_RED( sibling ) ) {
+                RBT_SET_BLACK( sibling );
+                RBT_SET_RED( node->parent );
+                RBT_left_rotate( tree, node->parent );
+                sibling = node->parent->right;
+            }
+            if ( RBT_IS_BLACK( sibling->left ) && RBT_IS_BLACK( sibling->right ) ) {
+                RBT_SET_RED( sibling );
+                node = node->parent;
+            } else if ( RBT_IS_BLACK( sibling->right ) ) {
+                RBT_SET_BLACK(sibling->left);
+                RBT_SET_RED(sibling);
+                RBT_right_rotate( tree, sibling );
+                sibling = node->parent->right;
+            }
+            RBT_COPY_COLOR(sibling, node->parent);
+            RBT_SET_BLACK(node->parent);
+            RBT_SET_BLACK(sibling->right);
+            RBT_left_rotate( tree, node->parent );
+            node = tree->root;
+        } else {
+            struct RBT_Node *sibling = node->parent->left;
+            if ( RBT_IS_RED( sibling ) ) {
+                RBT_SET_BLACK( sibling );
+                RBT_SET_RED( node->parent );
+                RBT_right_rotate( tree, node->parent );
+                sibling = node->parent->left;
+            }
+            if ( RBT_IS_BLACK( sibling->right ) && RBT_IS_BLACK( sibling->left ) ) {
+                RBT_SET_RED( sibling );
+                node = node->parent;
+            } else if ( RBT_IS_BLACK( sibling->left ) ) {
+                RBT_SET_BLACK(sibling->right);
+                RBT_SET_RED(sibling);
+                RBT_left_rotate( tree, sibling );
+                sibling = node->parent->left;
+            }
+            RBT_COPY_COLOR(sibling, node->parent);
+            RBT_SET_BLACK(node->parent);
+            RBT_SET_BLACK(sibling->left);
+            RBT_right_rotate( tree, node->parent );
+            node = tree->root;
+        }
+    }
+    RBT_SET_BLACK(node);
+}
+
+static inline struct RBT_Node *RBT_insert(struct RBT_Tree *tree, struct RBT_Node *node) {
     struct RBT_Node *parent = RBT_find_parent(tree, node);
 
     node->parent = parent; // setting parent node and fixing forward pointers
@@ -180,44 +273,12 @@ struct RBT_Node *RBT_insert(struct RBT_Tree *tree, struct RBT_Node *node) {
 
     node->left = NULL;
     node->right = NULL;
-    node->color = RBT_RED;
+    RBT_SET_RED(node);
     RBT_insert_fixup( tree, node );
     return node;
 }
 
-void *RBT_add( struct RBT_Tree *tree, size_t key, void *data ) {
-    tree->node_count++;
-    struct RBT_Node *inserted = RBT_insert(tree, RBT_new_node(tree, key, data));
-    return (inserted == NULL) ? inserted : inserted->data;
-}
-
-struct RBT_Node *RBT_minimum(struct RBT_Node *node) {
-    if ( node == NULL ) {
-        return NULL;
-    } else if ( node->left == NULL ) {
-        return node;
-    }
-    struct RBT_Node *iterator = node->left;
-    while (iterator->left != NULL) {
-        iterator = iterator->left;
-    }
-    return iterator;
-}
-
-struct RBT_Node *RBT_maximum(struct RBT_Node *node) {
-    if ( node == NULL ) {
-        return NULL;
-    } else if ( node->right == NULL ) {
-        return node;
-    }
-    struct RBT_Node *iterator = node->right;
-    while ( iterator->right != NULL ) {
-        iterator = iterator->right;
-    }
-    return iterator;
-}
-
-void RBT_transplant_tree(struct RBT_Tree *tree, struct RBT_Node *old, struct RBT_Node *transplant) {
+static inline void RBT_transplant_tree(struct RBT_Tree *tree, struct RBT_Node *old, struct RBT_Node *transplant) {
 
     if ( old->parent == NULL ) {
         tree->root = transplant;
@@ -231,62 +292,11 @@ void RBT_transplant_tree(struct RBT_Tree *tree, struct RBT_Node *old, struct RBT
     }
 }
 
-void RBT_remove_fixup(struct RBT_Tree *tree, struct RBT_Node *node) {
-    while ( RBT_IS_BLACK( node ) && node != tree->root ) {
-        if ( node == node->parent->left ) {
-            struct RBT_Node *sibling = node->parent->right;
-            if ( RBT_IS_RED( sibling ) ) {
-                sibling->color = RBT_BLACK;
-                node->parent->color = RBT_RED;
-                RBT_left_rotate( tree, node->parent );
-                sibling = node->parent->right;
-            }
-            if ( RBT_IS_BLACK( sibling->left ) && RBT_IS_BLACK( sibling->right ) ) {
-                sibling->color = RBT_RED;
-                node = node->parent;
-            } else if ( RBT_IS_BLACK( sibling->right ) ) {
-                sibling->left->color = RBT_BLACK;
-                sibling->color = RBT_RED;
-                RBT_right_rotate( tree, sibling );
-                sibling = node->parent->right;
-            }
-            sibling->color = node->parent->color;
-            node->parent->color = RBT_BLACK;
-            sibling->right->color = RBT_BLACK;
-            RBT_left_rotate( tree, node->parent );
-            node = tree->root;
-        } else {
-            struct RBT_Node *sibling = node->parent->left;
-            if ( RBT_IS_RED( sibling ) ) {
-                sibling->color = RBT_BLACK;
-                node->parent->color = RBT_RED;
-                RBT_right_rotate( tree, node->parent );
-                sibling = node->parent->left;
-            }
-            if ( RBT_IS_BLACK( sibling->right ) && RBT_IS_BLACK( sibling->left ) ) {
-                sibling->color = RBT_RED;
-                node = node->parent;
-            } else if ( RBT_IS_BLACK( sibling->left ) ) {
-                sibling->right->color = RBT_BLACK;
-                sibling->color = RBT_RED;
-                RBT_left_rotate( tree, sibling );
-                sibling = node->parent->left;
-            }
-            sibling->color = node->parent->color;
-            node->parent->color = RBT_BLACK;
-            sibling->left->color = RBT_BLACK;
-            RBT_right_rotate( tree, node->parent );
-            node = tree->root;
-        }
-    }
-    node->color = RBT_BLACK;
-}
-
-struct RBT_Node *RBT_iterative_find(struct RBT_Node *node, size_t key) {
+static inline struct RBT_Node *RBT_iterative_find(struct RBT_Node *node, size_t key) {
     struct RBT_Node *iterator = node;
 
-    while ( iterator != NULL && iterator->key != key ) {
-        if ( key < iterator->key ) {
+    while ( iterator != NULL && RBT_KEYVALUE(iterator->key) != RBT_KEYVALUE(key) ) {
+        if ( RBT_KEYVALUE(key) < RBT_KEYVALUE(iterator->key) ) {
             iterator = iterator->left;
         } else {
             iterator = iterator->right;
@@ -295,23 +305,14 @@ struct RBT_Node *RBT_iterative_find(struct RBT_Node *node, size_t key) {
     return iterator;
 }
 
-void *RBT_find(struct RBT_Tree *tree, size_t key) {
-
-    if ( tree == NULL ) {
-        return NULL;
-    }
-    struct RBT_Node *node = RBT_iterative_find(tree->root, key);
-    return node == NULL ? node : node->data ;
-}
-
-int RBT_remove(struct RBT_Tree *tree, struct RBT_Node *node ) {
+static inline int RBT_remove(struct RBT_Tree *tree, struct RBT_Node *node ) {
     if ( tree == NULL || node == NULL ) {
         return 0;
     }
 
     struct RBT_Node *point;
     struct RBT_Node *old = node;
-    enum RBT_Color old_color = node->color;
+    uintmax_t old_color = node->key;
 
     if ( node->left == NULL ) {
         point = node->right;
@@ -320,12 +321,12 @@ int RBT_remove(struct RBT_Tree *tree, struct RBT_Node *node ) {
         point = node->left;
         RBT_transplant_tree(tree, node, node->left);
     } else if ( node->right == NULL && node->left == NULL ) {
-        // this step is needed since the book uses the T.nill difinition
+        // this step is needed since the book uses the T.nill definition
         // which is always black and is a allocated object (in contrast to our NULL)
         RBT_transplant_tree(tree, node, NULL);
     } else {
         old = RBT_minimum( node->right );
-        old_color = old->color;
+        old_color = old->key;
         point = old->right;
 
         if ( old->parent == node ) {
@@ -340,9 +341,9 @@ int RBT_remove(struct RBT_Tree *tree, struct RBT_Node *node ) {
         RBT_transplant_tree(tree, node, old);
         old->left = node->left;
         old->left->parent = old;
-        old->color = node->color;
+        RBT_COPY_COLOR(old, node);
     }
-    if ( old_color == RBT_BLACK ) {
+    if ( RBT_IS_KEY_BLACK(old_color) ) {
         RBT_remove_fixup(tree, point);
     }
     RBT_FREE(node);
@@ -351,48 +352,7 @@ int RBT_remove(struct RBT_Tree *tree, struct RBT_Node *node ) {
     return 1;
 }
 
-int RBT_delete(struct RBT_Tree *tree, size_t key) {
-    struct RBT_Node *find_node = RBT_iterative_find( tree->root, key );
-
-    if ( find_node != NULL ) {
-        return RBT_remove( tree, find_node );
-    }
-    return 0;
-}
-
-int RBT_get_maximum(struct RBT_Tree *tree, size_t *key, void **value) {
-    struct RBT_Node *node = RBT_maximum(tree->root);
-    if (!node) {
-        return 0;
-    }
-    if (key) {
-        *key = node->key;
-    }
-    if (value) {
-        *value = node->data;
-    }
-
-    return 1;
-}
-
-
-int RBT_get_minimum(struct RBT_Tree *tree, size_t *key, void **value) {
-    struct RBT_Node *node = RBT_minimum(tree->root);
-    if (!node) {
-        return 0;
-    }
-    if (key) {
-        *key = node->key;
-    }
-    if (value) {
-        *value = node->data;
-    }
-
-    return 1;
-}
-
-
-struct RBT_Stack *RBT_new_stack( size_t size ) {
+static inline struct RBT_Stack *RBT_new_stack( size_t size ) {
     if ( size == 0 ) {
         return NULL;
     }
@@ -410,14 +370,14 @@ struct RBT_Stack *RBT_new_stack( size_t size ) {
     return new_stack;
 }
 
-void RBT_destroy_stack( struct RBT_Stack * stack ) {
+static inline void RBT_destroy_stack( struct RBT_Stack * stack ) {
     if ( stack != NULL ) {
         free(stack->buffer);
         free(stack);
     }
 }
 
-void RBT_pretty_push( struct RBT_Stack * stack, char character ) {
+static inline void RBT_pretty_push( struct RBT_Stack * stack, char character ) {
     if ( stack->size > 0 && stack->next_index + 5 <= stack->size ) {
         stack->buffer[ stack->next_index++ ] = ' ';
         stack->buffer[ stack->next_index++ ] = character;
@@ -427,22 +387,13 @@ void RBT_pretty_push( struct RBT_Stack * stack, char character ) {
     }
 }
 
-void RBT_pretty_pop( struct RBT_Stack * stack ) {
+static inline void RBT_pretty_pop( struct RBT_Stack * stack ) {
     if ( stack->size > 0 && stack->next_index > 0 ) {
         stack->buffer[ stack->next_index -= 4 ] = '\0';
     }
 }
 
-void RBT_pretty_printer( struct RBT_Node *from_node ) {
-    if ( from_node == NULL ) {
-        return;
-    }
-    struct RBT_Stack *stack = RBT_new_stack(2046);
-    RBT_pretty_printer_helper(from_node, stack);
-    RBT_destroy_stack(stack);
-}
-
-void RBT_pretty_printer_helper( struct RBT_Node *node, struct RBT_Stack *stack ) {
+static void RBT_pretty_printer_helper( struct RBT_Node *node, struct RBT_Stack *stack ) {
 
     if ( stack == NULL ) {
         return;
@@ -452,7 +403,7 @@ void RBT_pretty_printer_helper( struct RBT_Node *node, struct RBT_Stack *stack )
         printf("(NULL, b)\n");
         return;
     } else {
-        printf("(k:%zu, c:%c, d:%p)\n", node->key, RBT_COLOR_CHAR(node), node->data);
+        printf("(k:%zu, c:%c, d:%p)\n", RBT_KEYVALUE(node->key), RBT_COLOR_CHAR(node), node->data);
     }
 
     printf( "%s |--", stack->buffer );
@@ -466,3 +417,81 @@ void RBT_pretty_printer_helper( struct RBT_Node *node, struct RBT_Stack *stack )
     RBT_pretty_pop(stack);
 }
 
+
+/* --- PUBLIC FUNCTIONS --- */
+
+
+int RBT_init_tree(struct RBT_Tree *tree) {
+    if ( !tree ) {
+        return 0;
+    }
+    tree->root = NULL;
+    tree->node_count = 0;
+    return 1;
+}
+
+void RBT_deinit_tree(struct RBT_Tree *tree, void (*freedata)(void *)) {
+    RBT_recursive_destroy(tree, tree->root, freedata);
+}
+
+void *RBT_add( struct RBT_Tree *tree, size_t key, void *data ) {
+    tree->node_count++;
+    struct RBT_Node *inserted = RBT_insert(tree, RBT_new_node(tree, key, data));
+    return (inserted == NULL) ? inserted : inserted->data;
+}
+
+void *RBT_find(struct RBT_Tree *tree, size_t key) {
+    if ( tree == NULL ) {
+        return NULL;
+    }
+    struct RBT_Node *node = RBT_iterative_find(tree->root, key);
+    return node == NULL ? node : node->data;
+}
+
+int RBT_delete(struct RBT_Tree *tree, size_t key) {
+    struct RBT_Node *find_node = RBT_iterative_find( tree->root, key );
+
+    if ( find_node != NULL ) {
+        return RBT_remove( tree, find_node );
+    }
+    return 0;
+}
+
+int RBT_get_maximum(struct RBT_Tree *tree, size_t *key, void **value) {
+    struct RBT_Node *node = RBT_maximum(tree->root);
+    if (!node) {
+        return 0;
+    }
+    if (key) {
+        *key = RBT_KEYVALUE(node->key);
+    }
+    if (value) {
+        *value = node->data;
+    }
+
+    return 1;
+}
+
+int RBT_get_minimum(struct RBT_Tree *tree, size_t *key, void **value) {
+    struct RBT_Node *node = RBT_minimum(tree->root);
+    if (!node) {
+        return 0;
+    }
+    if (key) {
+        *key = RBT_KEYVALUE(node->key);
+    }
+    if (value) {
+        *value = node->data;
+    }
+
+    return 1;
+}
+
+void RBT_pretty_printer( struct RBT_Node *from_node ) {
+    if ( from_node == NULL ) {
+        return;
+    }
+    struct RBT_Stack *stack = RBT_new_stack(2046);
+    RBT_pretty_printer_helper(from_node, stack);
+    RBT_destroy_stack(stack);
+}
