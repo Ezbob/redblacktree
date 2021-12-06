@@ -19,6 +19,10 @@
 /**
  * Internal RBT tree node, carrying a key and a data reference,
  * as well as reference to sub and parent nodes.
+ *
+ * Coloring is determinted by the most significate bit of the key with
+ * a set bit marking the node as red, and a cleared bit marking the node as black.
+ * On 64 bit systems this gives a 2^63 number of unique keys.
  */
 struct RBT_Node {
     uintmax_t key;
