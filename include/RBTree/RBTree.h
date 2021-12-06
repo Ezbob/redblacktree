@@ -92,14 +92,10 @@ int RBT_get_minimum(struct RBT_Tree *tree, size_t *key, void **value);
 
 
 /**
- * Prints a tree node, and it's subnodes in a ASCII tree to the stdout stream.
+ * Prints a tree and it's subnodes in a ASCII tree to the stdout stream.
  */
-void RBT_pretty_printer(struct RBT_Node *);
+void RBT_pretty_printer(struct RBT_Tree *);
 
-/**
- * Convience macro for pretty printing a whole RBT tree.
- */
-#define RBT_PRETTY_PRINT(tree_ptr) RBT_pretty_printer((tree_ptr)->root)
 
 /**
  * Convience macro for getting the node count of a RBT tree

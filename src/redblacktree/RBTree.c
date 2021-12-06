@@ -487,11 +487,11 @@ int RBT_get_minimum(struct RBT_Tree *tree, size_t *key, void **value) {
     return 1;
 }
 
-void RBT_pretty_printer( struct RBT_Node *from_node ) {
-    if ( from_node == NULL ) {
+void RBT_pretty_printer(struct RBT_Tree *tree) {
+    if ( tree == NULL ) {
         return;
     }
     struct RBT_Stack *stack = RBT_new_stack(2046);
-    RBT_pretty_printer_helper(from_node, stack);
+    RBT_pretty_printer_helper(tree->root, stack);
     RBT_destroy_stack(stack);
 }
