@@ -265,7 +265,7 @@ static inline struct RBT_Node *RBT_insert(struct RBT_Tree *tree, struct RBT_Node
 
     if ( parent == NULL ) {
         tree->root = node;
-    } else if ( node->key < parent->key  ) {
+    } else if ( RBT_KEYVALUE(node->key) < RBT_KEYVALUE(parent->key) ) {
         parent->left = node;
     } else {
         parent->right = node;
