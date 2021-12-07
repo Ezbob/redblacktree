@@ -15,7 +15,7 @@ set(CMAKE_C_STANDARD 99)
 add_library(redblacktree SHARED "")
 target_sources(redblacktree
   PRIVATE
-    ${CMAKE_CURRENT_LIST_DIR}/src/redblacktree/RBTree.c
+    ${CMAKE_CURRENT_LIST_DIR}/src/RBTree.c
 )
 target_include_directories(redblacktree
   PUBLIC
