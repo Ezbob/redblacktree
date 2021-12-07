@@ -1,7 +1,7 @@
 #include <stdlib.h>
 #include <stdio.h>
 #include "cutest/pub_cutest.h"
-#include "test_functions.h"
+#include "RBTreeTest.h"
 
 static int default_keys[] = { 10, 12, 20, 34, 6, 3 };
 static long int *default_values;

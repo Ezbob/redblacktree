@@ -3,3 +3,4 @@ RTBtest
 build/
 
 vgcore.*
+/.vscode/

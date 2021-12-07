@@ -1,4 +1,4 @@
-#include "test_functions.h"
+#include "RBTreeTest.h"
 #include "cutest/cutest.h"
 
 TEST_LIST = {
