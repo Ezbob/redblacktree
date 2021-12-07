@@ -56,4 +56,7 @@ void RBT_test_static_allocate_nodes(void);
 
 // end of functions
 
+#define RBT_IS_RED(node) (node && ((node->key & (UINTMAX_C(1) << (8 * sizeof(uintmax_t) - 1))) != 0))
+#define RBT_IS_BLACK(node)  (! RBT_IS_RED(node))
+
 #endif

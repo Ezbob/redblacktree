@@ -1,10 +1,7 @@
 #include <stdlib.h>
 #include <stdio.h>
-#include "pub_cutest.h"
+#include "cutest/pub_cutest.h"
 #include "test_functions.h"
-
-#define RBT_IS_RED(node) (node && ((node->key & (UINTMAX_C(1) << (8 * sizeof(uintmax_t) - 1))) != 0))
-#define RBT_IS_BLACK(node)  (! RBT_IS_RED(node))
 
 static int default_keys[] = { 10, 12, 20, 34, 6, 3 };
 static long int *default_values;

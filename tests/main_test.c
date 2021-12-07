@@ -1,5 +1,5 @@
 #include "test_functions.h"
-#include "cutest.h"
+#include "cutest/cutest.h"
 
 TEST_LIST = {
        { "inserting into tree", RBT_test_insert },
