@@ -5,7 +5,7 @@
 
 // private stuff within RBTree.h
 
-struct RBT_Stack
+struct RBT_Printer_Stack
 {
     size_t size;
     size_t next_index;
@@ -19,11 +19,11 @@ void RBT_right_rotate(struct RBT_Tree *, struct RBT_Node *);
 void RBT_insert_fixup(struct RBT_Tree *, struct RBT_Node *);
 struct RBT_Node *RBT_insert(struct RBT_Tree *, struct RBT_Node *);
 void RBT_recursive_destroy(struct RBT_Node *, void (*f)(void *));
-struct RBT_Stack *RBT_new_stack(size_t size);
-void RBT_destroy_stack(struct RBT_Stack *stack);
-void RBT_pretty_printer_helper(struct RBT_Node *node, struct RBT_Stack *);
-void RBT_pretty_push(struct RBT_Stack *stack, char character);
-void RBT_pretty_pop(struct RBT_Stack *stack);
+struct RBT_Printer_Stack *RBT_new_stack(size_t size);
+void RBT_destroy_stack(struct RBT_Printer_Stack *stack);
+void RBT_pretty_printer_helper(struct RBT_Node *node, struct RBT_Printer_Stack *);
+void RBT_pretty_push(struct RBT_Printer_Stack *stack, char character);
+void RBT_pretty_pop(struct RBT_Printer_Stack *stack);
 struct RBT_Node *RBT_find_parent(struct RBT_Tree *, struct RBT_Node *);
 int RBT_remove(struct RBT_Tree *, struct RBT_Node *);
 void RBT_remove_fixup(struct RBT_Tree *, struct RBT_Node *);
@@ -57,6 +57,6 @@ void RBT_test_static_allocate_nodes(void);
 // end of functions
 
 #define RBT_IS_RED(node) (node && ((node->key & (UINTMAX_C(1) << (8 * sizeof(uintmax_t) - 1))) != 0))
-#define RBT_IS_BLACK(node)  (! RBT_IS_RED(node))
+#define RBT_IS_BLACK(node) (!RBT_IS_RED(node))
 
 #endif

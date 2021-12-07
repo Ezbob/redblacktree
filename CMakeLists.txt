@@ -12,10 +12,15 @@ set(CMAKE_C_STANDARD 99)
 # Library
 # ----
 
+set(redblack_library_sources
+  ${CMAKE_CURRENT_LIST_DIR}/src/RBTree.c
+  ${CMAKE_CURRENT_LIST_DIR}/src/RBPrinterStack.c
+)
+
 add_library(redblacktree SHARED "")
 target_sources(redblacktree
   PRIVATE
-    ${CMAKE_CURRENT_LIST_DIR}/src/RBTree.c
+    ${redblack_library_sources}
 )
 target_include_directories(redblacktree
   PUBLIC
@@ -26,7 +31,7 @@ target_include_directories(redblacktree
 add_library(redblacktree_static STATIC "")
 target_sources(redblacktree_static
   PRIVATE
-    ${CMAKE_CURRENT_LIST_DIR}/src/redblacktree/RBTree.c
+    ${redblack_library_sources}
 )
 target_include_directories(redblacktree_static
   PUBLIC

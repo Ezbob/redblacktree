@@ -9,34 +9,8 @@
 #include <stdlib.h>
 #include <stdio.h>
 #include <assert.h>
-
-#define RBT_ERROR(message) fprintf(stderr, "Error: %s\n", message)
-#define RBT_ERROR_STOP(code, message)  do { fprintf(stderr, "Error: %s\n", message); exit(code); } while ( 0 )
-
-// Linear bounded stack for printing purposes
-struct RBT_Stack {
-    size_t size;
-    size_t next_index;
-    char *buffer;
-};
-
-#define RBT_COLOR_CHAR(node) RBT_IS_RED(node) ? 'r' : 'b'
-#define RBT_TAB_SIZE 4
-
-#define RBT_COLOR_BITMASK (UINTMAX_C(1) << (8 * sizeof(uintmax_t) - 1))
-
-#define RBT_IS_RED(node) (node && ((node->key & RBT_COLOR_BITMASK) != 0))
-#define RBT_IS_BLACK(node)  (! RBT_IS_RED(node))
-
-// highest significat bit set = RED
-#define RBT_SET_BLACK(node) ( (node)->key &= ~(RBT_COLOR_BITMASK) )
-#define RBT_SET_RED(node) ( (node)->key |= RBT_COLOR_BITMASK )
-
-#define RBT_COPY_COLOR(dest, source) (RBT_IS_RED(source) ? RBT_SET_RED(dest) : RBT_SET_BLACK(dest))
-
-#define RBT_IS_KEY_BLACK(key) ((key & RBT_COLOR_BITMASK) == 0)
-
-#define RBT_KEYVALUE(key) (key & (~RBT_COLOR_BITMASK))
+#include "RBMacros.h"
+#include "RBPrinterStack.h"
 
 
 /* ---- PRIVATE FUNCTIONS ---- */
@@ -352,48 +326,7 @@ static inline int RBT_remove(struct RBT_Tree *tree, struct RBT_Node *node ) {
     return 1;
 }
 
-static inline struct RBT_Stack *RBT_new_stack( size_t size ) {
-    if ( size == 0 ) {
-        return NULL;
-    }
-
-    struct RBT_Stack *new_stack = malloc( sizeof(struct RBT_Stack) );
-    if ( new_stack == NULL ) {
-        RBT_ERROR_STOP( EXIT_FAILURE, "Cannot allocate more memory." );
-        return NULL;
-    }
-    new_stack->buffer = calloc( sizeof(char), size );
-
-    new_stack->size = size;
-    new_stack->next_index = 0;
-
-    return new_stack;
-}
-
-static inline void RBT_destroy_stack( struct RBT_Stack * stack ) {
-    if ( stack != NULL ) {
-        free(stack->buffer);
-        free(stack);
-    }
-}
-
-static inline void RBT_pretty_push( struct RBT_Stack * stack, char character ) {
-    if ( stack->size > 0 && stack->next_index + 5 <= stack->size ) {
-        stack->buffer[ stack->next_index++ ] = ' ';
-        stack->buffer[ stack->next_index++ ] = character;
-        stack->buffer[ stack->next_index++ ] = ' ';
-        stack->buffer[ stack->next_index++ ] = ' ';
-        stack->buffer[ stack->next_index ] = '\0';
-    }
-}
-
-static inline void RBT_pretty_pop( struct RBT_Stack * stack ) {
-    if ( stack->size > 0 && stack->next_index > 0 ) {
-        stack->buffer[ stack->next_index -= 4 ] = '\0';
-    }
-}
-
-static void RBT_pretty_printer_helper( struct RBT_Node *node, struct RBT_Stack *stack ) {
+static void RBT_pretty_printer_helper( struct RBT_Node *node, struct RBT_Printer_Stack *stack ) {
 
     if ( stack == NULL ) {
         return;
@@ -491,7 +424,7 @@ void RBT_pretty_printer(struct RBT_Tree *tree) {
     if ( tree == NULL ) {
         return;
     }
-    struct RBT_Stack *stack = RBT_new_stack(2046);
+    struct RBT_Printer_Stack *stack = RBT_new_stack(2046);
     RBT_pretty_printer_helper(tree->root, stack);
     RBT_destroy_stack(stack);
 }
