@@ -266,7 +266,7 @@ static inline void RBT_transplant_tree(struct RBT_Tree *tree, struct RBT_Node *o
     }
 }
 
-static inline struct RBT_Node *RBT_iterative_find(struct RBT_Node *node, size_t key) {
+static inline struct RBT_Node *RBT_iterative_find(struct RBT_Node *node, uintmax_t key) {
     struct RBT_Node *iterator = node;
 
     while ( iterator != NULL && RBT_KEYVALUE(iterator->key) != RBT_KEYVALUE(key) ) {
@@ -367,13 +367,13 @@ void RBT_deinit_tree(struct RBT_Tree *tree, void (*freedata)(void *)) {
     RBT_recursive_destroy(tree, tree->root, freedata);
 }
 
-void *RBT_add( struct RBT_Tree *tree, size_t key, void *data ) {
+void *RBT_add( struct RBT_Tree *tree, uintmax_t key, void *data ) {
     tree->node_count++;
     struct RBT_Node *inserted = RBT_insert(tree, RBT_new_node(tree, key, data));
     return (inserted == NULL) ? inserted : inserted->data;
 }
 
-void *RBT_find(struct RBT_Tree *tree, size_t key) {
+void *RBT_find(struct RBT_Tree *tree, uintmax_t key) {
     if ( tree == NULL ) {
         return NULL;
     }
@@ -381,7 +381,7 @@ void *RBT_find(struct RBT_Tree *tree, size_t key) {
     return node == NULL ? node : node->data;
 }
 
-int RBT_delete(struct RBT_Tree *tree, size_t key) {
+int RBT_delete(struct RBT_Tree *tree, uintmax_t key) {
     struct RBT_Node *find_node = RBT_iterative_find( tree->root, key );
 
     if ( find_node != NULL ) {
@@ -390,7 +390,7 @@ int RBT_delete(struct RBT_Tree *tree, size_t key) {
     return 0;
 }
 
-int RBT_get_maximum(struct RBT_Tree *tree, size_t *key, void **value) {
+int RBT_get_maximum(struct RBT_Tree *tree, uintmax_t *key, void **value) {
     struct RBT_Node *node = RBT_maximum(tree->root);
     if (!node) {
         return 0;
@@ -405,7 +405,7 @@ int RBT_get_maximum(struct RBT_Tree *tree, size_t *key, void **value) {
     return 1;
 }
 
-int RBT_get_minimum(struct RBT_Tree *tree, size_t *key, void **value) {
+int RBT_get_minimum(struct RBT_Tree *tree, uintmax_t *key, void **value) {
     struct RBT_Node *node = RBT_minimum(tree->root);
     if (!node) {
         return 0;

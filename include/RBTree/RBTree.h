@@ -38,7 +38,7 @@ struct RBT_Node {
  */
 struct RBT_Tree {
     struct RBT_Node *root;
-    size_t node_count;
+    uintmax_t node_count;
 };
 
 /**
@@ -60,19 +60,19 @@ void RBT_deinit_tree(struct RBT_Tree *tree, void (*)(void *data_deallocator));
  * Adds a new node to the tree with the given key and value.
  * @returns The added value, if any, NULL otherwise.
  */
-void *RBT_add(struct RBT_Tree *, size_t, void *);
+void *RBT_add(struct RBT_Tree *, uintmax_t, void *);
 
 /**
  * Delete a node with the given key from the given RBT tree.
  * @returns a non-zero value on successful deletion, zero otherwise.
  */
-int RBT_delete(struct RBT_Tree *, size_t);
+int RBT_delete(struct RBT_Tree *, uintmax_t);
 
 /**
  * Finds a value in the RBT tree given a key.
  * @returns the found value, if any, NULL otherwise.
  */
-void *RBT_find(struct RBT_Tree *, size_t);
+void *RBT_find(struct RBT_Tree *, uintmax_t);
 
 /**
  * Finds the key and value in the tree of the element with the trees' maximum key value.
@@ -80,7 +80,7 @@ void *RBT_find(struct RBT_Tree *, size_t);
  * if any element was found.
  * @returns a non-zero value on successful deletion, zero otherwise.
  */
-int RBT_get_maximum(struct RBT_Tree *tree, size_t *key, void **value);
+int RBT_get_maximum(struct RBT_Tree *tree, uintmax_t *key, void **value);
 
 /**
  * Finds the key and value in the tree of the element with the trees' minimum key value.
@@ -88,7 +88,7 @@ int RBT_get_maximum(struct RBT_Tree *tree, size_t *key, void **value);
  * if any element was found.
  * @returns a non-zero value on successful deletion, zero otherwise.
  */
-int RBT_get_minimum(struct RBT_Tree *tree, size_t *key, void **value);
+int RBT_get_minimum(struct RBT_Tree *tree, uintmax_t *key, void **value);
 
 
 /**
