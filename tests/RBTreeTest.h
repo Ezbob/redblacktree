@@ -5,7 +5,6 @@
 #include "RBTree/RBTreePrinter.h"
 
 #include "RBMacros.h"
-#include "RBPrinterStack.h"
 
 void RBT_test_insert(void);
 void RBT_test_find(void);

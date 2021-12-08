@@ -14,7 +14,6 @@ set(CMAKE_C_STANDARD 99)
 
 set(redblack_library_sources
   ${CMAKE_CURRENT_LIST_DIR}/src/RBTree.c
-  ${CMAKE_CURRENT_LIST_DIR}/src/RBPrinterStack.c
   ${CMAKE_CURRENT_LIST_DIR}/src/RBTreePrinter.c
 )
 
