@@ -2,6 +2,8 @@
 #define _HEADER_FILE_RBTreeTest_20211207200422_
 
 #include "RBTree/RBTree.h"
+#include "RBTree/RBTreePrinter.h"
+
 #include "RBMacros.h"
 #include "RBPrinterStack.h"
 

@@ -10,10 +10,9 @@
  * Implemented by Anders Busch (2016-2021)
  *
  **/
-#ifndef RB_TREE_H
-#define RB_TREE_H
+#ifndef _HEADER_FILE_RBTree_20211208190717_
+#define _HEADER_FILE_RBTree_20211208190717_
 
-#include <stdlib.h>
 #include <stdint.h>
 
 /**
@@ -89,13 +88,6 @@ int RBT_get_maximum(struct RBT_Tree *tree, uintmax_t *key, void **value);
  * @returns a non-zero value on successful deletion, zero otherwise.
  */
 int RBT_get_minimum(struct RBT_Tree *tree, uintmax_t *key, void **value);
-
-
-/**
- * Prints a tree and it's subnodes in a ASCII tree to the stdout stream.
- */
-void RBT_pretty_printer(struct RBT_Tree *);
-
 
 /**
  * Convience macro for getting the node count of a RBT tree
