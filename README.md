@@ -1,4 +1,5 @@
 # redblacktree
+
 A red black tree written in C. This is my implementation of the classic red-black tree found in the Cormen et. al. textbook.
 
 ## How-to build
@@ -26,3 +27,8 @@ Here we build the shared library target `redblacktree`.
  - CMake minimum version 3.15
  - C99 standard compliant C compiler, and C library
  - Makefile, MSBuild, Ninja or other CMake generable build system
+
+## License
+
+This software is licensed under the MIT license.
+More information about this license can be found in the LICENSE file.
